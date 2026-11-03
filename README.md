@@ -20,7 +20,7 @@ Phase on, industrial punks!
 
 ## Try it online
 
-[https://celiacasanovas.github.io/type-p-fm1/](https://celiacasanovas.github.io/type-p-fm1/)
+[https://akirakosaintjust.github.io/type-p-fm1/](https://akirakosaintjust.github.io/type-p-fm1/)
 
 ## Install on the FM-1
 

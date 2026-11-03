@@ -250,6 +250,172 @@ LFO_TEST: Patch = {
     "global": {"nodes": [], "wires": []},
 }
 
+# the `comb` node: a feedback comb filter (fractional delay + damped feedback +
+# dry/wet) in the global zone, after a plain oscillator voice. The feedback tail
+# rings after note-off, so it uses the decay contract (not exact silence).
+COMB_TEST: Patch = {
+    "name": "comb_test",
+    "voices": 4,
+    "voice": {
+        "nodes": [
+            {"id": "ph", "type": "phasor"},
+            {"id": "osc", "type": "osc"},
+            {"id": "env", "type": "env"},
+            {"id": "vca", "type": "vca"},
+        ],
+        "wires": [
+            {"from": "ph.phase", "to": "osc.phase"},
+            {"from": "osc.audio", "to": "vca.audio"},
+            {"from": "env.cv", "to": "vca.cv"},
+        ],
+        "voice_out": "vca.audio",
+    },
+    "global": {
+        "nodes": [
+            {
+                "id": "cb",
+                "type": "comb",
+                "params": {"cutoff": 2048, "res": 16384, "tone": 24576, "mix": 32767},
+            }
+        ],
+        "wires": [
+            {"from": "voice", "to": "cb.in"},
+            {"from": "cb.out", "to": "out"},
+        ],
+    },
+}
+
+# the `apc` node: a band-limited Atari Punk Console pulse train, gated by an
+# envelope so the sound contract (non-silent then silent) applies.
+APC_TEST: Patch = {
+    "name": "apc_test",
+    "voices": 1,
+    "voice": {
+        "nodes": [
+            {"id": "osc", "type": "apc"},
+            {"id": "env", "type": "env"},
+            {"id": "vca", "type": "vca"},
+        ],
+        "wires": [
+            {"from": "osc.audio", "to": "vca.audio"},
+            {"from": "env.cv", "to": "vca.cv"},
+        ],
+        "voice_out": "vca.audio",
+    },
+    "global": {"nodes": [], "wires": []},
+}
+
+# the `naive_apc` node: the aliasing APC variant (same control surface).
+NAIVE_APC_TEST: Patch = {
+    "name": "naive_apc_test",
+    "voices": 1,
+    "voice": {
+        "nodes": [
+            {"id": "osc", "type": "naive_apc"},
+            {"id": "env", "type": "env"},
+            {"id": "vca", "type": "vca"},
+        ],
+        "wires": [
+            {"from": "osc.audio", "to": "vca.audio"},
+            {"from": "env.cv", "to": "vca.cv"},
+        ],
+        "voice_out": "vca.audio",
+    },
+    "global": {"nodes": [], "wires": []},
+}
+
+# the `dapc` macro: two cross-modulated APCs, summed through a DC blocker and an
+# envelope. The cross-mod depths are set below unity so the chaos is musical.
+DAPC_TEST: Patch = {
+    "name": "dapc_test",
+    "voices": 1,
+    "voice": {
+        "nodes": [
+            {
+                "id": "d",
+                "type": "dapc",
+                "params": {
+                    "level": 16000,
+                    "xf12": 12000,
+                    "xf21": 12000,
+                    "xw12": 8000,
+                    "xw21": 8000,
+                },
+            },
+            {"id": "env", "type": "env"},
+            {"id": "vca", "type": "vca"},
+        ],
+        "wires": [
+            {"from": "d.out", "to": "vca.audio"},
+            {"from": "env.cv", "to": "vca.cv"},
+        ],
+        "voice_out": "vca.audio",
+    },
+    "global": {"nodes": [], "wires": []},
+}
+
+# the `liquid_filter` node: a 4-pole ladder lowpass in a voice chain, driven by an osc.
+LIQUID_TEST: Patch = {
+    "name": "liquid_test",
+    "voices": 1,
+    "voice": {
+        "nodes": [
+            {"id": "ph", "type": "phasor"},
+            {"id": "osc", "type": "osc"},
+            {
+                "id": "flt",
+                "type": "liquid_filter",
+                "params": {"f": 30000, "res": 40000, "comp": 16384, "on": 1},
+            },
+            {"id": "env", "type": "env"},
+            {"id": "vca", "type": "vca"},
+        ],
+        "wires": [
+            {"from": "ph.phase", "to": "osc.phase"},
+            {"from": "osc.audio", "to": "flt.audio"},
+            {"from": "flt.out", "to": "vca.audio"},
+            {"from": "env.cv", "to": "vca.cv"},
+        ],
+        "voice_out": "vca.audio",
+    },
+    "global": {"nodes": [], "wires": []},
+}
+
+# the `liquid_filter` self-oscillation check: a global filter at full resonance,
+# after the voice. Once the note releases the input goes to zero, so any sustained
+# tail is the filter self-oscillating (not the source).
+LIQUID_OSC: Patch = {
+    "name": "liquid_osc",
+    "voices": 1,
+    "voice": {
+        "nodes": [
+            {"id": "ph", "type": "phasor"},
+            {"id": "osc", "type": "osc"},
+            {"id": "env", "type": "env"},
+            {"id": "vca", "type": "vca"},
+        ],
+        "wires": [
+            {"from": "ph.phase", "to": "osc.phase"},
+            {"from": "osc.audio", "to": "vca.audio"},
+            {"from": "env.cv", "to": "vca.cv"},
+        ],
+        "voice_out": "vca.audio",
+    },
+    "global": {
+        "nodes": [
+            {
+                "id": "flt",
+                "type": "liquid_filter",
+                "params": {"f": 3985, "res": 65535, "comp": 0, "on": 1},
+            }
+        ],
+        "wires": [
+            {"from": "voice", "to": "flt.audio"},
+            {"from": "flt.out", "to": "out"},
+        ],
+    },
+}
+
 # the `mute` node: an oscillator gated by a runtime `mute` param (0 = pass, 1 = 0).
 MUTE_TEST: Patch = {
     "name": "mute_test",
@@ -752,6 +918,95 @@ int main(void) {
         return 1;
     }
     printf("ok: __NAME__ renders non-silent then decays to near-silence\\n");
+    return 0;
+}
+"""
+
+# The SH-101 filter contract: a low `f` coefficient attenuates the input (lowpass),
+# a high `f` passes it, and at a cutoff near the input a high `res` boosts it above
+# res=0 (the resonant peak). `__F__` / `__RES__` are the param ids.
+LIQUID_HARNESS = """\
+#include <stdio.h>
+#include <stdint.h>
+void __NAME___dsp_reset(void);
+void __NAME___dsp_note_on(uint32_t note, uint32_t velocity);
+void __NAME___dsp_render(int32_t *out, uint32_t frames);
+int __NAME___dsp_set_param(uint32_t id, int32_t value);
+static int32_t out[8192];
+static long long energy(void) {
+    long long e = 0; int i;
+    for (i = 4096; i < 8192; i++) e += (long long)out[i] * out[i];
+    return e;
+}
+static long long run(int f, int res) {
+    __NAME___dsp_reset();
+    __NAME___dsp_set_param(__F__, f);
+    __NAME___dsp_set_param(__RES__, res);
+    __NAME___dsp_note_on(69, 100);
+    __NAME___dsp_render(out, 4096);
+    return energy();
+}
+int main(void) {
+    long long lo = run(2000, 0);
+    long long hi = run(55000, 0);
+    long long r0 = run(3985, 0);
+    long long r1 = run(3985, 65535);
+    if (!(hi > lo * 2)) {
+        printf("FAIL: not a lowpass (lo=%lld hi=%lld)\\n", lo, hi);
+        return 1;
+    }
+    if (!(r1 > r0)) {
+        printf("FAIL: no resonant peak (r0=%lld r1=%lld)\\n", r0, r1);
+        return 1;
+    }
+    printf("ok: __NAME__ lowpass + resonant peak (lo=%lld hi=%lld r0=%lld r1=%lld)\\n",
+        lo, hi, r0, r1);
+    return 0;
+}
+"""
+
+# The liquid-filter self-oscillation contract: at full resonance, with the source
+# released to silence, the filter must keep ringing (a sustained, bounded tone).
+LIQUID_OSC_HARNESS = """\
+#include <stdio.h>
+#include <stdint.h>
+void __NAME___dsp_reset(void);
+void __NAME___dsp_note_on(uint32_t note, uint32_t velocity);
+void __NAME___dsp_render(int32_t *out, uint32_t frames);
+void __NAME___dsp_all_notes_off(void);
+static int32_t out[8192];
+static void window(int a, int b, long long *e, int *mx) {
+    int i;
+    *e = 0; *mx = 0;
+    for (i = a; i < b; i++) {
+        int v = out[i] < 0 ? -out[i] : out[i];
+        *e += (long long)out[i] * out[i];
+        if (v > *mx) *mx = v;
+    }
+}
+int main(void) {
+    long long early, late; int em, lm;
+    __NAME___dsp_reset();
+    __NAME___dsp_note_on(69, 100);
+    __NAME___dsp_render(out, 4096);        /* excite the filter */
+    __NAME___dsp_all_notes_off();
+    __NAME___dsp_render(out, 4096);        /* source silent: tail is the filter */
+    window(0, 4096, &early, &em);
+    window(4096, 8192, &late, &lm);
+    if (lm < 200) {
+        printf("FAIL: no self-oscillation (late max %d)\\n", lm);
+        return 1;
+    }
+    if (lm > 40000) {
+        printf("FAIL: self-oscillation unbounded (late max %d)\\n", lm);
+        return 1;
+    }
+    if (late < early / 4) {
+        printf("FAIL: tail decays, no sustain (early %lld late %lld)\\n", early, late);
+        return 1;
+    }
+    printf("ok: __NAME__ self-oscillates (late max %d, early %lld late %lld)\\n",
+        lm, early, late);
     return 0;
 }
 """
@@ -2083,6 +2338,101 @@ def _cc_map_reaches(patch: Patch) -> tuple[bool, str]:
         return run.returncode == 0, run.stdout.strip()
 
 
+def _sound_decay(patch: Patch) -> tuple[bool, str]:
+    """Generate, compile, and run the decay contract (non-silent, then a ringing
+    tail that decays to near-silence) for a feedback filter without tables."""
+    src = generate(patch)
+    with tempfile.TemporaryDirectory() as tmp:
+        d = Path(tmp)
+        (d / "dsp.c").write_text(src)
+        cname = patch["name"].replace("-", "_").replace(".", "_")
+        (d / "harness.c").write_text(DECAY_HARNESS.replace("__NAME__", cname))
+        proc = subprocess.run(
+            [
+                "cc",
+                "-std=c11",
+                *_include_args(),
+                "-o",
+                str(d / "t"),
+                str(d / "harness.c"),
+                str(d / "dsp.c"),
+                "-lm",
+            ],
+            capture_output=True,
+            text=True,
+        )
+        if proc.returncode != 0:
+            return False, "compile failed:\n" + proc.stderr
+        run = subprocess.run([str(d / "t")], capture_output=True, text=True)
+        return run.returncode == 0, run.stdout.strip()
+
+
+def _liquid_behaves(patch: Patch) -> tuple[bool, str]:
+    """Generate, compile, and run the liquid-filter contract: a low `f` attenuates
+    the input (lowpass), a high `f` passes it, and at a matched cutoff a high `res`
+    boosts it above res=0 (the resonant peak)."""
+    src = generate(patch)
+    ids = param_ids(patch)
+    with tempfile.TemporaryDirectory() as tmp:
+        d = Path(tmp)
+        (d / "dsp.c").write_text(src)
+        cname = patch["name"].replace("-", "_").replace(".", "_")
+        harness = (
+            LIQUID_HARNESS.replace("__NAME__", cname)
+            .replace("__F__", str(ids["flt.f"]))
+            .replace("__RES__", str(ids["flt.res"]))
+        )
+        (d / "harness.c").write_text(harness)
+        proc = subprocess.run(
+            [
+                "cc",
+                "-std=c11",
+                *_include_args(),
+                "-o",
+                str(d / "t"),
+                str(d / "harness.c"),
+                str(d / "dsp.c"),
+                "-lm",
+            ],
+            capture_output=True,
+            text=True,
+        )
+        if proc.returncode != 0:
+            return False, "compile failed:\n" + proc.stderr
+        run = subprocess.run([str(d / "t")], capture_output=True, text=True)
+        return run.returncode == 0, run.stdout.strip()
+
+
+def _liquid_selfosc(patch: Patch) -> tuple[bool, str]:
+    """Generate, compile, and run the liquid-filter self-oscillation contract: at
+    full resonance, with the source released, the filter keeps ringing (sustained
+    and bounded)."""
+    src = generate(patch)
+    with tempfile.TemporaryDirectory() as tmp:
+        d = Path(tmp)
+        (d / "dsp.c").write_text(src)
+        cname = patch["name"].replace("-", "_").replace(".", "_")
+        (d / "harness.c").write_text(LIQUID_OSC_HARNESS.replace("__NAME__", cname))
+        proc = subprocess.run(
+            [
+                "cc",
+                "-std=c11",
+                *_include_args(),
+                "-o",
+                str(d / "t"),
+                str(d / "harness.c"),
+                str(d / "dsp.c"),
+                "-lm",
+            ],
+            capture_output=True,
+            text=True,
+        )
+        if proc.returncode != 0:
+            return False, "compile failed:\n" + proc.stderr
+        run = subprocess.run([str(d / "t")], capture_output=True, text=True)
+        return run.returncode == 0, run.stdout.strip()
+
+
 def _sound_tables(patch: Patch) -> tuple[bool, str]:
     """Generate + compile (with tables.c) + run the sound contract for a table patch."""
     src = generate(patch)
@@ -3060,6 +3410,54 @@ def main() -> int:
     print(
         ("ok: " if ok else "FAIL: ")
         + (msg or "osc waveform (double half sine) renders non-silent then silent")
+    )
+    failures += 0 if ok else 1
+
+    ok, msg = _sound_decay(COMB_TEST)
+    print(
+        ("ok: " if ok else "FAIL: ")
+        + (msg or "comb filter renders non-silent then decays to near-silence")
+    )
+    failures += 0 if ok else 1
+
+    ok, msg = _sound(APC_TEST)
+    print(
+        ("ok: " if ok else "FAIL: ")
+        + (msg or "apc (band-limited) renders non-silent then silent")
+    )
+    failures += 0 if ok else 1
+
+    ok, msg = _sound(NAIVE_APC_TEST)
+    print(
+        ("ok: " if ok else "FAIL: ")
+        + (msg or "naive_apc (aliasing) renders non-silent then silent")
+    )
+    failures += 0 if ok else 1
+
+    ok, msg = _sound(LIQUID_TEST)
+    print(
+        ("ok: " if ok else "FAIL: ")
+        + (msg or "liquid_filter (4-pole ladder) renders non-silent then silent")
+    )
+    failures += 0 if ok else 1
+
+    ok, msg = _liquid_behaves(LIQUID_TEST)
+    print(
+        ("ok: " if ok else "FAIL: ") + (msg or "liquid_filter lowpass + resonant peak")
+    )
+    failures += 0 if ok else 1
+
+    ok, msg = _liquid_selfosc(LIQUID_OSC)
+    print(
+        ("ok: " if ok else "FAIL: ")
+        + (msg or "liquid_filter self-oscillates and sustains")
+    )
+    failures += 0 if ok else 1
+
+    ok, msg = _sound(DAPC_TEST)
+    print(
+        ("ok: " if ok else "FAIL: ")
+        + (msg or "dapc (dual cross-modulated apc) renders non-silent then silent")
     )
     failures += 0 if ok else 1
 

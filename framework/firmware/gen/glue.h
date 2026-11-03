@@ -4,8 +4,13 @@
 #include "fm1_ipc.h"
 #include "scope.h"
 
+/* The generated seams are the only XIP code that calls into `.dsp_text`
+ * (SRAM): the ~4.3 MB distance sits at the limit of
+ * R_PI32V2_LONG_JUMP_23M2. `app.ld` pins this section at the XIP base. */
+#define UMETATE_GLUE_API __attribute__((section(".text.veneer"), noinline, used))
+
 /* the seam adapters: dual-core (core 0 pushes a note command) or direct. */
-static inline void type_p_fm1_glue_note_on(uint32_t note, uint32_t vel)
+static UMETATE_GLUE_API void type_p_fm1_glue_note_on(uint32_t note, uint32_t vel)
 {
 #if FM1_CPU1_USED
     if (fm1_c1_on) {
@@ -16,7 +21,7 @@ static inline void type_p_fm1_glue_note_on(uint32_t note, uint32_t vel)
 #endif
     type_p_fm1_dsp_note_on(note, vel);
 }
-static inline void type_p_fm1_glue_note_on_ch(uint32_t note, uint32_t vel, uint32_t ch)
+static UMETATE_GLUE_API void type_p_fm1_glue_note_on_ch(uint32_t note, uint32_t vel, uint32_t ch)
 {
 #if FM1_CPU1_USED
     if (fm1_c1_on) {
@@ -27,7 +32,7 @@ static inline void type_p_fm1_glue_note_on_ch(uint32_t note, uint32_t vel, uint3
 #endif
     type_p_fm1_dsp_note_on_ch(note, vel, ch);
 }
-static inline void type_p_fm1_glue_note_off(uint32_t note)
+static UMETATE_GLUE_API void type_p_fm1_glue_note_off(uint32_t note)
 {
 #if FM1_CPU1_USED
     if (fm1_c1_on) {
@@ -37,7 +42,7 @@ static inline void type_p_fm1_glue_note_off(uint32_t note)
 #endif
     type_p_fm1_dsp_note_off(note);
 }
-static inline void type_p_fm1_glue_all_off(void)
+static UMETATE_GLUE_API void type_p_fm1_glue_all_off(void)
 {
 #if FM1_CPU1_USED
     if (fm1_c1_on) {
@@ -47,15 +52,27 @@ static inline void type_p_fm1_glue_all_off(void)
 #endif
     type_p_fm1_dsp_all_notes_off();
 }
-static inline int type_p_fm1_glue_set_param(uint32_t id, int32_t value)
+static UMETATE_GLUE_API int type_p_fm1_glue_set_param(uint32_t id, int32_t value)
 {
     return type_p_fm1_dsp_set_param(id, value);
 }
-static inline void type_p_fm1_glue_bend(uint32_t bend)
+static UMETATE_GLUE_API void type_p_fm1_glue_bend(uint32_t bend)
 {
     type_p_fm1_dsp_set_bend_q16(bend);
 }
-static inline int type_p_fm1_glue_quiet(void)
+static UMETATE_GLUE_API int32_t type_p_fm1_glue_get_param(uint32_t id)
+{
+    return type_p_fm1_dsp_get_param(id);
+}
+static UMETATE_GLUE_API void type_p_fm1_glue_reset(void)
+{
+    type_p_fm1_dsp_reset();
+}
+static UMETATE_GLUE_API uint32_t type_p_fm1_glue_lit(uint32_t base)
+{
+    return type_p_fm1_dsp_lit(base);
+}
+static UMETATE_GLUE_API int type_p_fm1_glue_quiet(void)
 {
 #if FM1_CPU1_USED
     return (int)dsp_status.quiet;
@@ -65,7 +82,7 @@ static inline int type_p_fm1_glue_quiet(void)
 }
 
 /* the frozen `app_audio` contract: render (split-core or direct) + taps. */
-static void app_audio(int32_t *out, uint32_t n)
+static UMETATE_GLUE_API void app_audio(int32_t *out, uint32_t n)
 {
 #if FM1_CPU1_USED
     type_p_fm1_render_block((uint32_t)(uintptr_t)out);

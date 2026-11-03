@@ -15,6 +15,10 @@ from collections.abc import Iterator, Mapping
 from ._ir import GenError, to_c_identifier
 from ._schema import Context, PanelBinding, PanelManifest, Widget
 
+# firmware/src/ui.h UI_PART_MAX: the header mute flags and the name slots are
+# per part, so a panel cannot declare more parts than the kit tracks.
+_UI_PART_MAX = 8
+
 # ---- the fixed input-source vocabulary (ui.h) ----
 _SOURCES = {
     "KEY": "UI_SRC_KEY",
@@ -295,6 +299,10 @@ def generate_panel(
     params: dict[str, int] = {}
     operators = panel.get("operators") or []
     n_parts = panel.get("parts", 1)
+    if not 1 <= n_parts <= _UI_PART_MAX:
+        raise GenError(
+            f"panel: parts must be 1..{_UI_PART_MAX} (the UI kit's UI_PART_MAX)"
+        )
     op_names: list[str] = []  # the operator-relative param "rest" parts, first-seen
     env_names: list[str] = []  # the envelope's 7 op-relative "rest" parts
     part_names: list[str] = []  # the part-relative params (the GLO part pages)
@@ -402,22 +410,40 @@ def generate_panel(
             # with the high bit so the runtime can tell them apart); `final` =
             # the final post-FX mix (0xC0, ch 0).
             mix_part = w.get("mix_part")
+            channel = w.get("channel", 0)
             if w.get("final"):
                 param = str(0xC0)
             elif w.get("active"):
                 param = str(0x40)
             elif mix_part is not None:
+                if not 0 <= mix_part < n_parts:
+                    raise GenError(
+                        f"{w['type']} widget: mix_part {mix_part} outside "
+                        f"0..{n_parts - 1}"
+                    )
                 param = str(0x80 | mix_part)
             else:
-                param = str(w.get("channel", 0))
+                if operators and not 0 <= channel < len(operators):
+                    raise GenError(
+                        f"{w['type']} widget: channel {channel} outside "
+                        f"0..{len(operators) - 1}"
+                    )
+                param = str(channel)
         elif w["type"] == "subheader":
             typ = "UI_SUBHEADER"
             # param = the prefix mode (see subheader_mode)
             param = str(subheader_mode(w))
         elif w["type"] == "name":
             typ = "UI_NAME"
-            # param = the name index (0 = part, 1 = patch); text = the label
-            param = str(w.get("name", 0))
+            # param = a part index, or n_parts for the multi-patch name
+            # text = the label
+            name_ix = w.get("name", 0)
+            if not 0 <= name_ix <= n_parts:
+                raise GenError(
+                    f"name widget: index {name_ix} outside 0..{n_parts} "
+                    "(the parts, then the multi-patch)"
+                )
+            param = str(name_ix)
         else:
             wparam = w.get("param")
             rest = op_rest(wparam) if wparam else None

@@ -61,13 +61,13 @@ static int32_t ui_custom_v[UI_MAX_WIDGETS];     /* UI_CUSTOM widgets' dirty valu
 static int32_t ui_cursor;                        /* list/grid selection */
 static uint8_t ui_selected_op;                   /* the selected operator (0..3) for OP_* */
 static uint8_t ui_selected_part;                 /* the active part (0..n_part-1) */
-static uint8_t ui_part_mute[4];                  /* part mute flags (up to 4 parts) */
+static uint8_t ui_part_mute[UI_PART_MAX];        /* part mute flags, one per part */
 static int32_t ui_header_last = 0x7FFFFFFF;      /* the header's last-drawn value */
 static char ui_popup_line[40];                   /* the preset-browser popup text */
 static uint8_t ui_popup_on;                      /* 1 = the popup is showing */
 static uint8_t ui_popup_alg_on;                  /* 1 = the algorithm-graph popup is showing */
 static uint8_t ui_popup_alg_val;                 /* the algorithm the graph popup shows */
-static char ui_name[3][UI_NAME_LEN];              /* [0] part 1, [1] part 2, [2] multi-patch */
+static char ui_name[UI_NAME_SLOTS][UI_NAME_LEN];  /* [part], and [n_part] = multi-patch */
 static char ui_name_saved[UI_NAME_LEN];          /* the pre-edit copy (for cancel) */
 static uint8_t ui_name_which, ui_name_cursor, ui_name_on;  /* the name-editor state */
 static uint8_t ui_save_on, ui_save_which;        /* the save chooser: open flag + selected row */
@@ -715,7 +715,7 @@ static void ui_draw_value(const ui_widget *w)
 static void ui_draw_name_row(const ui_widget *w)
 {
     uint32_t x, y, wd, ht;
-    const char *name = ui_name_get(w->param < 3u ? w->param : 0u);
+    const char *name = ui_name_get((uint8_t)w->param);
     ui_region(w, &x, &y, &wd, &ht);
     cv_begin(wd, ht, C_BLACK);
     {
@@ -1122,7 +1122,7 @@ static int32_t ui_header_value(void)
         if (p < ui_t->n_params && ui_param_v[p])
             v |= 1 << (int32_t)(17u + i);
     }
-    for (i = 0; i < 4u && i < ui_t->n_part; i++)
+    for (i = 0; i < UI_PART_MAX && i < ui_t->n_part; i++)
         if (ui_part_mute[i])
             v |= 1 << (int32_t)(21u + i);
     return v;
@@ -1150,11 +1150,25 @@ static void ui_draw_header(void)
      * operators are the white base text (selected = light blue, muted = red); ALG is
      * pink; the menu + page is purple. */
     x = 0;
-    for (i = 0; i < ui_t->n_part; i++) {
-        tok[0] = 'P';
-        tok[1] = (char)('1' + i);
-        tok[2] = 0;
-        x = ui_htok(x, 0, tok, i == ui_selected_part, ui_part_mute[i]);
+    if (ui_t->n_part <= 4u) {
+        for (i = 0; i < ui_t->n_part; i++) {
+            tok[0] = 'P';
+            tok[1] = (char)('1' + i);
+            tok[2] = 0;
+            x = ui_htok(x, 0, tok, i == ui_selected_part, ui_part_mute[i]);
+            x = ui_htok(x, 0, " ", 0, 0);
+        }
+    } else {
+        /* too many parts for one row: "P<active>/<n>" keeps the header inside
+         * 240 px while the mutes stay visible in the part chooser + the legend. */
+        uint32_t sel = ui_selected_part < ui_t->n_part ? ui_selected_part : 0u;
+        ui_strcpy(tok, "P");
+        ui_itoa((int32_t)sel + 1, t);
+        ui_strcat(tok, t);
+        ui_strcat(tok, "/");
+        ui_itoa((int32_t)ui_t->n_part, t);
+        ui_strcat(tok, t);
+        x = ui_htok(x, 0, tok, 1, ui_part_mute[sel]);
         x = ui_htok(x, 0, " ", 0, 0);
     }
     if (ui_t->n_op) {
@@ -1242,7 +1256,7 @@ static int32_t ui_widget_value(const ui_widget *w, uint32_t slot)
             return (int32_t)ui_selected_part;
         return 0;                                    /* 2/3/4: no number, static */
     case UI_NAME: {                                 /* redraw when the name changes */
-        const char *n = ui_name_get(w->param < 3u ? w->param : 0u);
+        const char *n = ui_name_get((uint8_t)w->param);
         int32_t h = 0;
         while (*n)
             h += *n++;
@@ -1426,13 +1440,13 @@ static uint8_t ui_charset_idx(char c)
 
 const char *ui_name_get(uint8_t which)
 {
-    return ui_name[which < 3u ? which : 0u];
+    return ui_name[which < UI_NAME_SLOTS ? which : 0u];
 }
 
 void ui_name_set(uint8_t which, const char *name)
 {
     uint32_t i;
-    if (which >= 3u)
+    if (which >= UI_NAME_SLOTS)
         return;
     for (i = 0; i < UI_NAME_LEN - 1u && name[i]; i++)
         ui_name[which][i] = name[i];
@@ -1444,7 +1458,7 @@ uint8_t ui_name_editing(void) { return ui_name_on ? ui_name_which : 0xFFu; }
 void ui_name_editor_begin(uint8_t which)
 {
     uint32_t i;
-    if (which >= 3u)
+    if (which >= UI_NAME_SLOTS)
         return;
     ui_name_which = which;
     ui_name_cursor = 0;
@@ -1517,10 +1531,15 @@ void ui_name_editor_backspace(void)
 /* the name editor pop-up: title + the name (cursor char in purple) + the legend. */
 static void ui_draw_name_editor(void)
 {
-    static const char *const titles[3] = {
-        "single part 1 name", "single part 2 name", "multi-patch name"};
+    static const char *const part_titles[UI_PART_MAX] = {
+        "single part 1 name", "single part 2 name", "single part 3 name",
+        "single part 4 name", "single part 5 name", "single part 6 name",
+        "single part 7 name", "single part 8 name"};
     char s[UI_NAME_LEN + 8];
-    const char *title = titles[ui_name_which < 3u ? ui_name_which : 2u];
+    const char *title =
+        ui_t && ui_name_which < ui_t->n_part && ui_name_which < UI_PART_MAX
+            ? part_titles[ui_name_which]
+            : "multi-patch name";
     uint32_t i;
     cv_begin(240u, 6u * UI_ROW_H, C_POPUP_BG);
     cv_text(6, 2, &FONT_S, title, C_POPUP_TXT);
@@ -1691,7 +1710,8 @@ uint8_t ui_part_chooser_part(void) { return ui_part_sel_which; }
 
 void ui_part_chooser_begin(uint8_t part, const char *title)
 {
-    ui_part_sel_which = part < 2u ? part : 0u;
+    uint32_t n = ui_t && ui_t->n_part ? ui_t->n_part : 1u;
+    ui_part_sel_which = part < n ? part : 0u;
     ui_part_title = title;
     if (!ui_part_sel_on)
         ui_reset_page();
@@ -1700,10 +1720,18 @@ void ui_part_chooser_begin(uint8_t part, const char *title)
 
 void ui_part_chooser_move(int32_t delta)
 {
-    (void)delta;
+    uint32_t n;
+    int32_t s;
     if (!ui_part_sel_on)
         return;
-    ui_part_sel_which = ui_part_sel_which ? 0u : 1u;   /* two parts: toggle */
+    n = ui_t && ui_t->n_part ? ui_t->n_part : 1u;
+    if (n <= 1u)
+        return;
+    s = (int32_t)ui_part_sel_which + delta;
+    s %= (int32_t)n;
+    if (s < 0)
+        s += (int32_t)n;
+    ui_part_sel_which = (uint8_t)s;
 }
 
 void ui_part_chooser_commit(void)
@@ -1723,27 +1751,36 @@ void ui_part_chooser_cancel(void)
 }
 
 /* the "which single part" chooser pop-up: an optional extra first line (e.g.
- * "INIT PATCH"), the title + two rows (selected in purple), and the legend. */
+ * "INIT PATCH"), the title, one row per part (selected in purple), and the
+ * legend. Up to UI_PART_MAX parts fit the 240 px screen at one row each. */
 static void ui_draw_part_chooser(void)
 {
-    static const char *const ui_part_text[2] = {"PART 1", "PART 2"};
-    uint32_t i;
+    uint32_t i, n = ui_t && ui_t->n_part ? ui_t->n_part : 1u;
     int32_t y = 2;
-    cv_begin(240u, (ui_part_title ? 6u : 5u) * UI_ROW_H, C_POPUP_BG);
+    if (n > UI_PART_MAX)
+        n = UI_PART_MAX;
+    cv_begin(240u, ((ui_part_title ? 1u : 0u) + n + 3u) * UI_ROW_H, C_POPUP_BG);
     if (ui_part_title) {
         cv_text(6, y, &FONT_S, ui_part_title, C_POPUP_TXT);
         y += UI_ROW_H;
     }
     cv_text(6, y, &FONT_S, "WHICH SINGLE PART", C_POPUP_TXT);
     y += UI_ROW_H;
-    for (i = 0; i < 2u; i++) {
+    for (i = 0; i < n; i++) {
         char row[16];
-        ui_strcpy(row, i == ui_part_sel_which ? "> " : "  ");
-        ui_strcat(row, ui_part_text[i]);
+        row[0] = i == ui_part_sel_which ? '>' : ' ';
+        row[1] = ' ';
+        row[2] = 'P';
+        row[3] = 'A';
+        row[4] = 'R';
+        row[5] = 'T';
+        row[6] = ' ';
+        row[7] = (char)('1' + i);
+        row[8] = 0;
         cv_text(6, y + (int32_t)i * UI_ROW_H, &FONT_S, row,
                 i == ui_part_sel_which ? C_AMB : C_HI);
     }
-    y += 2 * UI_ROW_H;
+    y += (int32_t)n * UI_ROW_H;
     cv_text(6, y, &FONT_S, "K1=part SAVE=apply HOME=cancel", C_POPUP_TXT);
     cv_blit(0, 4 * UI_ROW_H);
 }

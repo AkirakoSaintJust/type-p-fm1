@@ -1,0 +1,100 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://umetate.dev/schema/panel.schema.json",
+  "title": "umetate panel (UI)",
+  "description": "The declarative UI: a context stack (modes), pages of abstract widgets, and a unified binding table. The generator emits the app's UI wiring; a retained-mode redraw engine runs it. See docs/roadmap.md §3.2.",
+  "type": "object",
+  "required": ["name", "contexts"],
+  "additionalProperties": false,
+  "properties": {
+    "name": { "type": "string", "minLength": 1 },
+    "boot": { "$ref": "#/$defs/page", "description": "optional transient pre-context screen" },
+    "home": { "type": "string", "default": "home", "description": "the base context id, booted into" },
+    "global": {
+      "type": "array",
+      "description": "always-on bindings, resolved last (MASTER, transport, panic, notes)",
+      "items": { "$ref": "#/$defs/binding" }
+    },
+    "mute": {
+      "type": "array",
+      "maxItems": 4,
+      "description": "the selected-operator mute params (op_mute toggles the selected one)",
+      "items": { "type": "string" }
+    },
+    "operators": {
+      "type": "array",
+      "description": "the operator instance prefixes (opN); a widget param `opN.<rest>` is operator-relative",
+      "items": { "type": "string" }
+    },
+    "alg": { "type": "string", "description": "the algorithm param name (the header readout)" },
+    "parts": { "type": "integer", "minimum": 1, "description": "the part count (the header + part_next)" },
+    "legend": { "type": "string", "description": "the footer gesture legend, drawn at the bottom row when free" },
+    "contexts": {
+      "type": "object",
+      "minProperties": 1,
+      "additionalProperties": { "$ref": "#/$defs/context" }
+    }
+  },
+  "$defs": {
+    "context": {
+      "type": "object",
+      "required": ["pages"],
+      "additionalProperties": false,
+      "properties": {
+        "pages": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/page" } },
+        "bindings": { "type": "array", "items": { "$ref": "#/$defs/binding" } },
+        "on_enter": { "type": "array", "items": { "type": "string" } },
+        "on_exit": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "page": {
+      "type": "object",
+      "required": ["id"],
+      "additionalProperties": false,
+      "properties": {
+        "id": { "type": "string", "pattern": "^[a-z][a-z0-9_]*$" },
+        "title": { "type": "string" },
+        "widgets": { "type": "array", "items": { "$ref": "#/$defs/widget" } }
+      }
+    },
+    "widget": {
+      "type": "object",
+      "required": ["type"],
+      "additionalProperties": false,
+      "properties": {
+        "type": { "enum": ["label", "value", "bar", "param_row", "param_column", "list", "grid", "envelope", "scope", "spectro", "status"] },
+        "row": { "type": "integer", "minimum": 0 },
+        "col": { "type": "integer", "minimum": 0 },
+        "span": { "type": "integer", "minimum": 1 },
+        "param": { "type": "string", "description": "param path, e.g. filter.cutoff" },
+        "params": { "type": "array", "items": { "type": "string" }, "description": "the envelope widget's 7 param paths (r1..r4, l1..l3)" },
+        "text": { "type": "string" },
+        "unit": { "type": "string" },
+        "fmt": { "type": "string", "description": "printf format for the value" },
+        "items": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "binding": {
+      "type": "object",
+      "required": ["source"],
+      "additionalProperties": false,
+      "properties": {
+        "source": { "type": "string", "description": "control or MIDI: BTN_*, ENC_*, KEY, FM1_ADC_*, pad:N, fader:N, wheel:N, cc:N, note:N" },
+        "target": { "type": "string", "description": "param path to write" },
+        "action": {
+          "type": "string",
+          "enum": ["note_on", "note_off", "set_step", "push", "pop", "pop_home", "next_page", "prev_page", "set_page", "bank_next", "bank_prev", "toggle", "latch", "save", "load", "panic", "play", "stop", "op_next", "op_prev", "op_mute"]
+        },
+        "arg": { "type": "string", "description": "argument for the action (context id, page id, step, ...)" },
+        "slot": { "type": "integer", "minimum": 0, "maximum": 3, "description": "the page's Nth param (UI_BIND_PAGE_SLOT)" },
+        "behavior": { "enum": ["absolute", "relative", "momentary", "latch", "toggle"] },
+        "curve": { "enum": ["linear", "log"] }
+      },
+      "oneOf": [
+        { "required": ["target"] },
+        { "required": ["action"] },
+        { "required": ["slot"] }
+      ]
+    }
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "name": "type-p-fm1",
+  "colors": {
+    "background": "#000000",
+    "surface": "#0a1414",
+    "text": "#e8e8e8",
+    "muted": "#5ca666",
+    "accent": "#ff2e7e",
+    "success": "#00ff2a",
+    "warning": "#ffaa00",
+    "error": "#ff0000"
+  }
+}

@@ -1,6 +1,6 @@
 # Type P.fm1 1.0.1
 
-Released 2026-11-04 from umetate `8940c66`.
+Released 2026-11-04 from source `31ecc64`.
 
 ## Downloads
 

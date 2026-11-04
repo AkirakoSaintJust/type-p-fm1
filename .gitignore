@@ -1,0 +1,4 @@
+__pycache__/
+*.pyc
+build/
+type-p-fm1-*-source.tar.gz

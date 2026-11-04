@@ -22,5 +22,5 @@ pins and build steps in `../DEPENDENCIES.md`. The licence texts are in
 
 ## Builds
 
-- `linux-x86_64/Type-P.fm1-VST3-linux-x86_64.zip`
 - `linux-x86_64/Type-P.fm1-CLAP-linux-x86_64.zip`
+- `linux-x86_64/Type-P.fm1-VST3-linux-x86_64.zip`

@@ -1,0 +1,148 @@
+name: release
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Tag to release, for example v1.0.1"
+        required: true
+      fwsc_url:
+        description: "Optional URL to replace the committed type-p-fm1.fwsc"
+        required: false
+        default: ""
+
+permissions:
+  contents: write
+
+jobs:
+  plugins:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: linux-x86_64
+            os: ubuntu-latest
+          - platform: windows-x86_64
+            os: windows-2022
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.tag || github.ref }}
+      - name: Linux build dependencies
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential cmake ninja-build \
+            libasound2-dev libx11-dev libfreetype-dev libfontconfig1-dev \
+            libgl1-mesa-dev libxrandr-dev libxinerama-dev libxcursor-dev \
+            libxcomposite-dev libxrender-dev libxfixes-dev libxkbcommon-dev
+      - name: Windows MSVC
+        if: runner.os == 'Windows'
+        uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: x64
+      - name: Configure
+        env:
+          CMAKE_GENERATOR: ${{ runner.os == 'Windows' && 'Visual Studio 17 2022' || 'Ninja' }}
+          CMAKE_GENERATOR_PLATFORM: ${{ runner.os == 'Windows' && 'x64' || '' }}
+        run: >
+          cmake -S framework/plugin -B build/plugin-${{ matrix.platform }}
+          -DP1_BUILD_JUCE=ON -DP1_BUILD_CLAP=ON
+          -DCMAKE_BUILD_TYPE=Release
+      - name: Build
+        run: >
+          cmake --build build/plugin-${{ matrix.platform }}
+          --config Release --parallel 4
+      - name: Test
+        shell: bash
+        run: >
+          ctest --test-dir build/plugin-${{ matrix.platform }} -C Release
+          -E "linux_daws|plugin_editor_snapshot" --output-on-failure
+      - uses: actions/upload-artifact@v4
+        with:
+          name: plugin-${{ matrix.platform }}
+          if-no-files-found: error
+          path: |
+            build/plugin-${{ matrix.platform }}/juce/type_p_fm1_artefacts/Release/VST3
+            build/plugin-${{ matrix.platform }}/juce/type_p_fm1_artefacts/Release/CLAP
+
+  release:
+    needs: plugins
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      TAG: ${{ inputs.tag || github.ref_name }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.tag || github.ref }}
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - uses: actions/download-artifact@v4
+        with:
+          name: plugin-linux-x86_64
+          path: build/artifacts/linux-x86_64
+      - uses: actions/download-artifact@v4
+        with:
+          name: plugin-windows-x86_64
+          path: build/artifacts/windows-x86_64
+      - name: Replace the firmware
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.fwsc_url != '' }}
+        run: curl -fL -o type-p-fm1.fwsc "${{ inputs.fwsc_url }}"
+      - name: Rebuild the release manifests
+        env:
+          PYTHONPATH: framework
+        run: |
+          python - <<'PY'
+          import os
+          from pathlib import Path
+
+          from umetate import publish
+
+          root = Path(".")
+          for artifact in sorted(Path("build/artifacts").iterdir()):
+              publish._stage_plugins(root, artifact, artifact.name)
+          version = publish._version_of(root)
+          commit = os.environ["GITHUB_SHA"][:7]
+          artifacts = publish._release_artifacts(root, "type-p-fm1")
+          publish._write_release(root, "Type P.fm1", version, commit, artifacts)
+          PY
+      - name: Check the tag and version
+        run: |
+          version=$(sed -n 's/^## \([0-9][0-9.]*\)$/\1/p' docs/release-notes.md | head -1)
+          test "$TAG" = "v$version"
+      - name: Commit the rebuilt archives
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add plugins RELEASES.md SHA256SUMS release.json type-p-fm1.fwsc
+          if git diff --cached --quiet; then
+            echo "no changes to commit"
+          else
+            git commit -m "release ${TAG}: rebuild the plugin archives"
+            git push origin HEAD:main
+          fi
+      - name: Build the source archive
+        run: |
+          tar --exclude=.git --exclude=build --exclude='plugins/*/*.zip' \
+            --exclude=vendor/deps --exclude='*.fwsc' --exclude=firmware.wasm \
+            -czf "type-p-fm1-${TAG}-source.tar.gz" .
+      - uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ env.TAG }}
+          name: Type P.fm1 ${{ env.TAG }}
+          body_path: CHANGELOG.md
+          fail_on_unmatched_files: true
+          files: |
+            type-p-fm1.fwsc
+            plugins/*/*.zip
+            RELEASES.md
+            SHA256SUMS
+            release.json
+            type-p-fm1-*-source.tar.gz

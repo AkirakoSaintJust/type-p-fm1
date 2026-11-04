@@ -2,7 +2,7 @@
 #pragma once
 #include <stdint.h>
 #define SYNTH_MODEL 64u
-#define SYNTH_N_PARAMS 133u
+#define SYNTH_N_PARAMS 134u
 #define SYNTH_N_PARTS 2u
-#define SYNTH_N_GLOBAL 33u
+#define SYNTH_N_GLOBAL 35u
 #define SYNTH_ROUTING_BASE (SYNTH_N_PARTS * SYNTH_N_PARAMS + SYNTH_N_GLOBAL)

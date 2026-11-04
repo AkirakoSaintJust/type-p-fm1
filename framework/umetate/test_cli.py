@@ -785,6 +785,261 @@ def _emu_package_preference() -> None:
         )
 
 
+def _publish_includes_plugin_source() -> None:
+    from . import publish
+
+    framework_paths = publish._FRAMEWORK_PATHS  # pyright: ignore[reportPrivateUsage]
+    assert "plugin" in framework_paths, "publish omits the plugin source"
+    assert "design" in framework_paths, "publish omits design/tokens.json"
+    assert "skills" in framework_paths, "publish omits the design/skill references"
+    assert "templates" in framework_paths, "publish omits the control-map template"
+    assert "plugin.json" in publish._SRC_FILES, "publish omits the plugin identity"
+
+    with tempfile.TemporaryDirectory() as tmp:
+        root = Path(tmp)
+        assert publish._project_title(root, "fallback") == "fallback"  # pyright: ignore[reportPrivateUsage]
+        synth = root / "synth"
+        synth.mkdir()
+        (synth / "plugin.json").write_text(
+            '{"product_name": "Type X"}\n', encoding="utf-8"
+        )
+        assert publish._project_title(synth, "fallback") == "Type X"  # pyright: ignore[reportPrivateUsage]
+
+    with tempfile.TemporaryDirectory() as tmp:
+        root = Path(tmp)
+        build = root / "build"
+        vst3 = (
+            build
+            / "juce"
+            / "type_p_fm1_artefacts"
+            / "Release"
+            / "VST3"
+            / "Type P.fm1.vst3"
+        )
+        (vst3 / "Contents" / "x86_64-linux").mkdir(parents=True)
+        (vst3 / "Contents" / "x86_64-linux" / "Type P.fm1.so").write_bytes(b"vst3")
+        clap = build / "juce" / "type_p_fm1_artefacts" / "Release" / "CLAP"
+        clap.mkdir(parents=True)
+        (clap / "Type P.fm1.clap").write_bytes(b"clap")
+
+        # the Linux DAW test copies the bundle into an isolated HOME. Publish must
+        # not stage that copy or the hidden .vst3 folder as a second artefact.
+        decoy = build / "juce" / "linux-daws" / "home" / ".vst3" / "Type P.fm1.vst3"
+        (decoy / "Contents" / "x86_64-linux").mkdir(parents=True)
+        (decoy / "Contents" / "x86_64-linux" / "Type P.fm1.so").write_bytes(b"x")
+        decoy_clap = build / "juce" / "linux-daws" / "home" / ".clap"
+        decoy_clap.mkdir(parents=True)
+        (decoy_clap / "Type P.fm1.clap").write_bytes(b"x")
+
+        out = root / "out"
+        out.mkdir()
+        stage_plugins = publish._stage_plugins  # pyright: ignore[reportPrivateUsage]
+        write_dependencies = publish._write_dependencies  # pyright: ignore[reportPrivateUsage]
+        readme_template = publish._README  # pyright: ignore[reportPrivateUsage]
+        plugins_section = publish._PLUGINS_SECTION  # pyright: ignore[reportPrivateUsage]
+        source_section = publish._PLUGIN_SOURCE_SECTION  # pyright: ignore[reportPrivateUsage]
+
+        staged = stage_plugins(out, build, "linux-x86_64")
+        assert len(staged) == 2, staged
+        assert (out / "plugins" / "linux-x86_64" / staged[0]).is_file()
+        readme = (out / "plugins" / "README.md").read_text(encoding="utf-8")
+        assert "AGPL-3.0-only" in readme, "plugin readme omits the JUCE licence"
+
+        write_dependencies(out, vendored=True)
+        deps = (out / "DEPENDENCIES.md").read_text(encoding="utf-8")
+        assert "8.0.9" in deps and "7adee3a" in deps, "dependency pins are missing"
+        assert "vendor/deps" in deps, "vendored source note is missing"
+
+        plain = readme_template.format(
+            title="X", repo_url="u", fwsc="x.fwsc", plugins="", plugin_source=""
+        )
+        assert "plugins/README.md" not in plain, "no-plugin README has a dead link"
+        with_plugins = readme_template.format(
+            title="X",
+            repo_url="u",
+            fwsc="x.fwsc",
+            plugins=plugins_section,
+            plugin_source=source_section,
+        )
+        assert "## Plugins" in with_plugins and "AGPL" not in with_plugins
+
+
+def _plugin_generate_roundtrip() -> None:
+    """`plugin-generate` renders the project and `--check` notices drift."""
+    from . import plugin_cli
+
+    root = Path(__file__).resolve().parents[1]
+    synth = root / "examples" / "type-p-fm1"
+    with tempfile.TemporaryDirectory() as tmp:
+        out = Path(tmp) / "project"
+        args = ["--synth", str(synth), "--out", str(out)]
+        buf = io.StringIO()
+        with contextlib.redirect_stdout(buf), contextlib.redirect_stderr(buf):
+            rc = plugin_cli.generate_main(args)
+        assert rc == 0, buf.getvalue()
+
+        project = (out / "P1Project.cmake").read_text(encoding="utf-8")
+        assert 'set(P1_PRODUCT_NAME "Type P.fm1")' in project
+        assert 'set(P1_PLUGIN_TARGET "type_p_fm1")' in project
+        assert 'set(P1_SYNTH_GEN "${CMAKE_CURRENT_LIST_DIR}/gen")' in project
+        assert (out / "gen" / "type_p_fm1_dsp.c").is_file()
+        assert (out / "gen" / "params.json").is_file()
+        assert (out / "CMakeLists.txt").is_file()
+        assert (out / "README.md").is_file()
+
+        buf = io.StringIO()
+        with contextlib.redirect_stdout(buf), contextlib.redirect_stderr(buf):
+            rc = plugin_cli.generate_main([*args, "--check"])
+        assert rc == 0, buf.getvalue()
+        assert "is current" in buf.getvalue()
+
+        (out / "gen" / "params.json").write_text("{}\n", encoding="utf-8")
+        buf = io.StringIO()
+        with contextlib.redirect_stdout(buf), contextlib.redirect_stderr(buf):
+            rc = plugin_cli.generate_main([*args, "--check"])
+        assert rc == 1, "a stale generated file must fail the check"
+        assert "stale gen/params.json" in buf.getvalue()
+
+        (out / "gen" / "stray.c").write_text("x\n", encoding="utf-8")
+        buf = io.StringIO()
+        with contextlib.redirect_stdout(buf), contextlib.redirect_stderr(buf):
+            rc = plugin_cli.generate_main(args)
+        assert rc == 0, buf.getvalue()
+        assert not (out / "gen" / "stray.c").exists(), (
+            "regeneration leaves a stray file"
+        )
+
+
+def _plugin_identity_rules() -> None:
+    """The plugin identity comes from plugin.json and is validated."""
+    from . import plugin_cli
+    from ._ir import GenError
+
+    with tempfile.TemporaryDirectory() as tmp:
+        synth = Path(tmp)
+        (synth / "plugin.json").write_text(
+            json.dumps(
+                {
+                    "product_name": "Test.fm",
+                    "bundle_id": "com.example.testfm",
+                    "manufacturer_code": "Tst1",
+                    "plugin_code": "Tfm1",
+                }
+            ),
+            encoding="utf-8",
+        )
+        meta = plugin_cli.load_meta(synth, "test_fm")
+        assert meta.product_name == "Test.fm"
+        assert meta.plugin_code == "Tfm1"
+
+        override = plugin_cli.load_meta(
+            synth, "test_fm", product_name="Override", plugin_code="Ovr1"
+        )
+        assert override.product_name == "Override"
+        assert override.plugin_code == "Ovr1"
+
+        (synth / "plugin.json").write_text(
+            json.dumps({"plugin_code": "TOOLONG"}), encoding="utf-8"
+        )
+        try:
+            plugin_cli.load_meta(synth, "test_fm")
+        except GenError:
+            pass
+        else:
+            raise AssertionError("a five-character plugin code must be rejected")
+
+        (synth / "plugin.json").write_text(
+            json.dumps({"product_name": 'Bad "quoted" name'}), encoding="utf-8"
+        )
+        try:
+            plugin_cli.load_meta(synth, "test_fm")
+        except GenError:
+            pass
+        else:
+            raise AssertionError("a quoted product name must be rejected")
+
+
+def _publish_release_manifest() -> None:
+    """The release page, checksums, and manifest cover the firmware and plugins."""
+    from . import publish
+
+    with tempfile.TemporaryDirectory() as tmp:
+        out = Path(tmp) / "release"
+        out.mkdir()
+        (out / "type-p-fm1.fwsc").write_bytes(b"fw")
+        plugin = out / "plugins" / "linux-x86_64" / "Type-P.fm1-VST3-linux-x86_64.zip"
+        plugin.parent.mkdir(parents=True)
+        plugin.write_bytes(b"vst3")
+        (out / "vendor" / "deps").mkdir(parents=True)
+
+        synth = Path(tmp) / "synth"
+        (synth / "docs").mkdir(parents=True)
+        (synth / "docs" / "release-notes.md").write_text(
+            "# Notes\n\n## 1.2.3\n\n- x\n", encoding="utf-8"
+        )
+        version = publish._version_of(synth)  # pyright: ignore[reportPrivateUsage]
+        assert version == "1.2.3", version
+
+        artifacts = publish._release_artifacts(  # pyright: ignore[reportPrivateUsage]
+            out, "type-p-fm1"
+        )
+        assert [artifact["format"] for artifact in artifacts] == [
+            "firmware",
+            "VST3",
+        ], artifacts
+        publish._write_release(  # pyright: ignore[reportPrivateUsage]
+            out,
+            "Type P.fm1",
+            version,
+            "abc1234",
+            artifacts,
+            released="2026-11-04",
+        )
+
+        sums = (out / "SHA256SUMS").read_text(encoding="utf-8").splitlines()
+        assert len(sums) == 2, sums
+        assert all(len(line.split()[0]) == 64 for line in sums), sums
+
+        page = (out / "RELEASES.md").read_text(encoding="utf-8")
+        assert "# Type P.fm1 1.2.3" in page
+        assert "abc1234" in page
+        assert "type-p-fm1.fwsc" in page and "Type-P.fm1-VST3" in page
+        assert "src/" in page and "framework/" in page and "vendor/deps/" in page
+
+        manifest = json.loads((out / "release.json").read_text(encoding="utf-8"))
+        assert manifest["version"] == "1.2.3"
+        assert manifest["commit"] == "abc1234"
+        assert len(manifest["artifacts"]) == 2
+
+
+def _publish_vendor_copy() -> None:
+    """Vendored deps keep the source and drop .git and build trees."""
+    from . import publish
+
+    with tempfile.TemporaryDirectory() as tmp:
+        src = Path(tmp) / "_deps"
+        (src / "juce-src" / "modules").mkdir(parents=True)
+        (src / "juce-src" / "modules" / "juce.cpp").write_text("x", encoding="utf-8")
+        (src / "juce-src" / ".git").mkdir()
+        (src / "juce-src" / ".git" / "config").write_text("x", encoding="utf-8")
+        (src / "juce-build").mkdir()
+        (src / "juce-build" / "CMakeCache.txt").write_text("x", encoding="utf-8")
+        (src / "juce-subbuild").mkdir()
+        (src / "juce-subbuild" / "build.ninja").write_text("x", encoding="utf-8")
+        (src / "clap-juce-extensions-src").mkdir()
+        (src / "clap-juce-extensions-src" / "clap.cpp").write_text(
+            "x", encoding="utf-8"
+        )
+
+        dest = Path(tmp) / "vendor" / "deps"
+        publish._copy_vendor(src, dest)  # pyright: ignore[reportPrivateUsage]
+        assert (dest / "juce-src" / "modules" / "juce.cpp").is_file()
+        assert (dest / "clap-juce-extensions-src" / "clap.cpp").is_file()
+        assert not (dest / "juce-src" / ".git").exists()
+        assert not (dest / "juce-build").exists()
+        assert not (dest / "juce-subbuild").exists()
+
+
 def main() -> int:
     tests: _Tests = [
         ("no import side effects", _no_import_side_effects),
@@ -815,6 +1070,20 @@ def main() -> int:
         ("umetate budget measures the polyphony scaling", _budget_measures),
         ("umetate budget compiles the patch's tables", _budget_measures_tabled),
         ("build --synth composes the dogfood firmware", _synth_build_composes),
+        (
+            "publish carries the plugin source + bundles",
+            _publish_includes_plugin_source,
+        ),
+        (
+            "publish writes the release page, checksums + manifest",
+            _publish_release_manifest,
+        ),
+        ("publish copies only the vendored source", _publish_vendor_copy),
+        (
+            "plugin-generate renders the project and catches drift",
+            _plugin_generate_roundtrip,
+        ),
+        ("the plugin identity is validated", _plugin_identity_rules),
     ]
     failures = 0
     for name, test in tests:

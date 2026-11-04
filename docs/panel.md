@@ -3,7 +3,10 @@
 The panel is the real M-VAVE FM-1 surface. Here is what every control does, where
 every page is, and how to save.
 
-## The controls
+I kept the live page flat on purpose. The four knobs always do something you can
+hear, and the deeper operator work stays behind EDIT.
+
+## Controls
 
 - **27 keys** play notes, F3 to G5.
 - **MASTER** is the volume pot. It is always volume, nothing else.
@@ -15,7 +18,7 @@ every page is, and how to save.
   **SAVE**, **ARP**, **SEQ**, **PLAY**, **REC**. The transport buttons (ARP, SEQ,
   PLAY, REC) are not used.
 
-## The modes
+## Four modes
 
 Four modes, switched with the buttons.
 
@@ -29,7 +32,7 @@ Four modes, switched with the buttons.
 
 `HOME` always returns to the performance page from any mode.
 
-## The operator editor
+## Editing an operator
 
 `EDIT` opens it. The selected operator and its mute state stay visible in the
 header. The pages, in order, with what KNOB 1 to 4 do:
@@ -59,7 +62,7 @@ the engine is quiet, so a save never clicks.
 The preset browser opens from the **PRESETS** encoder. You can also load and back
 up the whole bank over SysEx, see the MIDI reference.
 
-## The display
+## What the screen shows
 
 The screen is 240 by 240. The header shows the algorithm, the selected operator,
 and the mute state where they apply. The footer shows the page gesture legend when

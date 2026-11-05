@@ -163,7 +163,7 @@ Everything else is a page you open with a context button.
 - **SAVE** opens the save chooser. With SEL it initialises the patch or a part.
 - **ARP, SEQ, PLAY, REC** mute operators 1 to 4. With SEL they mute parts.
 
-### How to move
+### Navigation
 
 Press a context button to open that context at its first page. Press the same
 button again to move to the next page. `SELECT` also pages forward and back. The

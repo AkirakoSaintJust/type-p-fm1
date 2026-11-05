@@ -1,7 +1,7 @@
 {
   "product": "Type P.fm1",
   "version": "1.0.2",
-  "commit": "bce095b",
+  "commit": "0bc8dde",
   "date": "2026-11-05",
   "artifacts": [
     {
@@ -15,15 +15,15 @@
       "path": "plugins/linux-x86_64/Type-P.fm1-CLAP-linux-x86_64.zip",
       "platform": "linux-x86_64",
       "format": "CLAP",
-      "size": 5889987,
-      "sha256": "4ba275eda9f7c8355d898fed44dbf525b9e6ef59f3b88ecfef261489ae48f834"
+      "size": 5889792,
+      "sha256": "bab3c894c2a76fe982618171a53730be80563a21c2adbe3d316efe95e572a862"
     },
     {
       "path": "plugins/linux-x86_64/Type-P.fm1-VST3-linux-x86_64.zip",
       "platform": "linux-x86_64",
       "format": "VST3",
-      "size": 6092651,
-      "sha256": "6ce29d9a6d9d7bb07ab53a50bda82dab5e2f39a143de21205ccfff0b5b1cf6d8"
+      "size": 6092455,
+      "sha256": "60f0780f35d3b9ec627c4db6fe14fba11c37044855bfc7f6d2164260e9fef101"
     }
   ]
 }

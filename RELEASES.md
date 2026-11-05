@@ -1,6 +1,6 @@
 # Type P.fm1 1.0.2
 
-Released 2026-11-05 from source `bd3c0fe`.
+Released 2026-11-05 from source `4e1ed68`.
 
 ## Downloads
 

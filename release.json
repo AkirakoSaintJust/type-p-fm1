@@ -1,7 +1,7 @@
 {
   "product": "Type P.fm1",
   "version": "1.0.2",
-  "commit": "bdf1b9c",
+  "commit": "828dcaa",
   "date": "2026-11-05",
   "artifacts": [
     {
@@ -12,18 +12,53 @@
       "sha256": "8c90c1acd1dbc83eedd7fc49f15d818e7c53d0ef403d710f9452da1273720f71"
     },
     {
-      "path": "plugins/linux-x86_64/Type-P.fm1-CLAP-linux-x86_64.zip",
-      "platform": "linux-x86_64",
+      "path": "Type-P.fm1-CLAP-linux-aarch64.zip",
+      "platform": "linux-aarch64",
       "format": "CLAP",
-      "size": 5889792,
-      "sha256": "bab3c894c2a76fe982618171a53730be80563a21c2adbe3d316efe95e572a862"
+      "size": 5716313,
+      "sha256": "19b58a21326b9b20cba10d51b875181dc2f408d305fc1fd5a197223610205d87"
     },
     {
-      "path": "plugins/linux-x86_64/Type-P.fm1-VST3-linux-x86_64.zip",
+      "path": "Type-P.fm1-VST3-linux-aarch64.zip",
+      "platform": "linux-aarch64",
+      "format": "VST3",
+      "size": 5913190,
+      "sha256": "c2b1ea58895ee309d5b9e8cf25d698727237d284746cf738b806e6343070aef1"
+    },
+    {
+      "path": "Type-P.fm1-CLAP-linux-x86_64.zip",
+      "platform": "linux-x86_64",
+      "format": "CLAP",
+      "size": 5745408,
+      "sha256": "5bcba37019ecc46c28ab3303acfdf20bbb010b9b0aa8600a2526c4f5e0c783aa"
+    },
+    {
+      "path": "Type-P.fm1-VST3-linux-x86_64.zip",
       "platform": "linux-x86_64",
       "format": "VST3",
-      "size": 6092455,
-      "sha256": "60f0780f35d3b9ec627c4db6fe14fba11c37044855bfc7f6d2164260e9fef101"
+      "size": 5949678,
+      "sha256": "1f0bebad072b72e14350e5330f7a69f4efee3403ff56d51b8993e0057cc3530d"
+    },
+    {
+      "path": "Type-P.fm1-CLAP-windows-x86_64.zip",
+      "platform": "windows-x86_64",
+      "format": "CLAP",
+      "size": 4070395,
+      "sha256": "f81b77adf9bf0baa67715cf1d3dc294489e9ca7eb33628c2c6aab24b76ef6675"
+    },
+    {
+      "path": "Type-P.fm1-VST3-windows-x86_64.zip",
+      "platform": "windows-x86_64",
+      "format": "VST3",
+      "size": 4084256,
+      "sha256": "e740c8ac6ea8bfdbc69cecee1008fc29262b3c24f64397fe3820c600f3744c09"
+    },
+    {
+      "path": "type-p-fm1-1.0.2-source.tar.gz",
+      "platform": "source",
+      "format": "source",
+      "size": 3190637,
+      "sha256": "02ba6c9c091bd077c695a8f1c4e05d2df0dfc4e18cbda6994b8bcdffc0f5de41"
     }
   ]
 }

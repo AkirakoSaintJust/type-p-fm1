@@ -1,21 +1,21 @@
 # Control map (UI plan)
 
-> Fill this in during the UI interview. It becomes the `panel.json`. Delete
-> rejected options. One control map per project. The voice architecture and
-> parameter manifest (in `synth-brief.md`) are upstream of this: bind only
-> parameters that exist there.
+> Fill this in during the UI interview, and it becomes `panel.json`. Delete the
+> options you reject. One control map per project. The voice architecture and
+> parameter manifest in `synth-brief.md` are upstream, so bind only parameters that
+> exist there.
 >
-> **Do not author the panel until every section below is filled.** The ten-item
-> minimum bar is in `skills/umetate-development/SKILL.md` §2. The reasoning and
-> the design-language reference are in
-> `skills/umetate-development/references/ui-design.md`. The casebook is
-> `ui-dossier.md`.
+> **Do not author the panel until sections 1 to 8a are filled.** The handoff in
+> §8b is written with the reference. The ten-item minimum bar is in
+> `skills/umetate-development/SKILL.md` §2, the reasoning and design-language
+> reference are in `skills/umetate-development/references/ui-design.md`, and the
+> casebook is `ui-dossier.md`.
 
 ## 1. Surface inventory
 
 - **Board / revision:**
 - **Controls and their kinds** (momentary / latch / absolute / relative / pot / pad / fader / wheel / key / MIDI):
-- **Knob kinds** (smooth analog pot = volume vs detented encoder = parameter. Dedicated knob vs page-slot knob):
+- **Knob kinds** (smooth analogue pot = volume vs detented encoder = parameter. Dedicated knob vs page-slot knob):
 - **Silkscreen labels** (the printed name of each control, a fixed constraint the design must respect):
 - **Display / fonts / LEDs available:**
 - **Controls explicitly unmapped (and why):**
@@ -27,14 +27,22 @@
 - **Keys as shortcuts** (does the keybed double as a menu surface, operator select, mute?):
 - **What must stay playable during any interaction** (held notes, transport):
 
+### 2.1 Navigation
+
+- **Context buttons:** <list every button that opens a context, and what pressing it again does.>
+- **Page encoder:** <forward/back, wrap, or a fixed page order.>
+- **HOME:** <pop to home, then page through the home context, or another rule.>
+- **Modifier chords:** <every hold/chord, including copy, init, part switch, part mute, and operator mute.>
+- **Page knobs:** <the four page encoders edit the page's parameter rows in order. Say what happens when a page has fewer than four rows, and on display pages.>
+
 ## 3. Contexts (modes) and their bindings
 
-> A context owns both its view and its control meaning. For **each** context,
-> fill a table like the one below, one row per control/MIDI source that does
-> something here, and a row for every on-enter/on-exit side effect.
+> A context owns both its view and its control meaning. For **each** context, fill
+> a table like the one below with one row per control or MIDI source that does
+> something here, and a row for every on-enter or on-exit side effect.
 >
 > First draw the **menu tree**, every context (menu), its pages, and the *modes*
-> within a page (a page whose widgets change under a hold/shift, or a multi-mode
+> within a page (a page whose widgets change under a hold or shift, or a multi-mode
 > page). A fresh reader must be able to draw the screen for every state from this
 > section alone.
 
@@ -85,7 +93,7 @@ the value never disagree.
 
 ### 5c. INIT PATCH and INIT PART
 
-- **INIT PATCH, exact values** (every parameter, not "same as ..."):
+- **INIT PATCH, exact values** (every parameter, rather than "same as ..."):
 - **INIT PART, exact values:**
 - **What stays from the previous patch, if anything:**
 
@@ -109,8 +117,8 @@ the value never disagree.
 
 ## 8. Control flow (the state machine)
 
-> A fresh reader must trace every control through every context with no
-> ambiguity. Enumerate the transitions explicitly.
+> A fresh reader must be able to trace every control through every context without
+> ambiguity, so enumerate the transitions explicitly.
 
 - **Context transitions:** who pushes/pops what, and to where (`push` / `pop` /
   `pop_home` / `set_page` / `next_page` / `prev_page` / `bank_next` / `bank_prev`):
@@ -127,6 +135,30 @@ the value never disagree.
 - **Signal language** (scope, spectrum, envelopes, level fills, routing):
 - **Copy rules** (case, labels, value formats, name limits):
 - **Token source** (the one file the web, plugin, and firmware generate from):
+
+## 8b. Panel section handoff
+
+The user-facing panel section is written from this map and `panel.json`. It goes
+into the user manual after the sound-design chapters and before the first-patch
+chapter. It must teach a fresh reader how to move, not just list the controls.
+
+- **Surface:** every physical control, its kind, and its global job.
+- **Navigation:** every context button, how pages advance, how HOME works, every
+  modifier chord, and the page-knob rule.
+- **Page inventory:** one row per page with its title, KNOB 1 to 4 assignments,
+  display widgets, and the job of the page. Say when a page has fewer than four
+  parameters or when two pages share a title.
+- **Parameter reference:** every parameter with its range or units and a sentence
+  about what it does and what you hear. The page tables say where it lives. The
+  reference says what it means.
+- **Flows:** save, load, init, copy, and name editing, with the exact buttons,
+  knob assignments, and legends.
+- **Screen:** header fields, footer legend, popup behaviour, and LED feedback.
+- **Quick reference:** one line per context with its page count and job.
+
+Use `templates/panel-reference.md` as the shape. Do not write the section from the
+design intent. Read the generated page table and the app's popup handlers, then
+describe what the instrument actually does.
 
 ## 9. Acceptance
 

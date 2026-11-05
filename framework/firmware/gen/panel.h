@@ -4,52 +4,59 @@
 #pragma once
 #include "ui.h"
 
-enum { P_algorithm = 112, P_op1_ph_inc_ratio = 0, P_op1_tl_level = 16, P_op1_fb_level = 17, P_op1_osc_waveform = 2, P_op1_detune = 1, P_op2_detune = 29, P_op3_detune = 57, P_op4_detune = 85, P_op1_level_ks_lo = 18, P_op1_level_ks_hi = 19, P_op1_fb_ks_lo = 20, P_op1_fb_ks_hi = 21, P_op1_level_vs_amount = 24, P_op1_fb_vs_amount = 25, P_op1_eg_r1 = 3, P_op1_eg_r2 = 4, P_op1_eg_r3 = 5, P_op1_eg_r4 = 6, P_op1_eg_l1 = 7, P_op1_eg_l2 = 8, P_op1_eg_l3 = 9, P_penv_on = 113, P_penv_r1 = 114, P_penv_r2 = 115, P_penv_r3 = 116, P_penv_r4 = 117, P_penv_l1 = 118, P_penv_l2 = 119, P_penv_l3 = 120, P_op1_eg_ks_lo = 22, P_op1_eg_ks_hi = 23, P_penv_ks_lo = 121, P_penv_ks_hi = 122, P_op1_eg_vs_amount = 26, P_penv_vs = 123, P_op1_lfo_rate = 10, P_op1_lfo_depth = 11, P_op1_lfo_wave = 12, P_pitch_rate = 124, P_pitch_depth = 125, P_pitch_wave = 126, P_filter_on = 283, P_cutoff = 280, P_res = 281, P_filter_type = 282, P_fenv_r1 = 285, P_fenv_r2 = 286, P_fenv_r3 = 287, P_fenv_r4 = 288, P_fenv_l1 = 289, P_fenv_l2 = 290, P_fenv_l3 = 291, P_fenv_depth = 284, P_fold_on = 295, P_fold = 292, P_fold_threshold = 293, P_fold_folds = 294, P_filter2_on = 301, P_cutoff2 = 298, P_res2 = 299, P_filter2_type = 300, P_f1_cutoff_ks_lo = 271, P_f1_cutoff_ks_hi = 272, P_fenv_ks_lo = 273, P_fenv_ks_hi = 274, P_f2_cutoff_ks_lo = 275, P_f2_cutoff_ks_hi = 276, P_f1_cutoff_vs = 277, P_f2_cutoff_vs = 278, P_fenv_vs = 279, P_level_p0 = 309, P_delay_p0 = 311, P_level_p1 = 310, P_delay_p1 = 312, P_low_p0 = 305, P_high_p0 = 307, P_low_p1 = 306, P_high_p1 = 308, P_channel_p0 = 303, P_channel_p1 = 304, P_breakpoint = 268, P_key_sens_on = 269, P_vel_sens_on = 270, P_mode = 127, P_note_priority = 133, P_legato = 131, P_portamento = 132, P_detune = 130, P_unison_count = 128, P_unison_detune = 129, N_PARAMS = 313 };
+enum { P_cutoff = 280, P_res = 281, P_fold = 292, P_op1_feedback = 17, P_algorithm = 112, P_op1_ph_inc_ratio = 0, P_op1_tl_level = 16, P_op1_fb_level = 17, P_op1_osc_waveform = 2, P_op1_detune = 1, P_op2_detune = 29, P_op3_detune = 57, P_op4_detune = 85, P_op1_level_ks_lo = 18, P_op1_level_ks_hi = 19, P_op1_fb_ks_lo = 20, P_op1_fb_ks_hi = 21, P_op1_level_vs_amount = 24, P_op1_fb_vs_amount = 25, P_op1_eg_r1 = 3, P_op1_eg_r2 = 4, P_op1_eg_r3 = 5, P_op1_eg_r4 = 6, P_op1_eg_l1 = 7, P_op1_eg_l2 = 8, P_op1_eg_l3 = 9, P_penv_on = 113, P_penv_r1 = 114, P_penv_r2 = 115, P_penv_r3 = 116, P_penv_r4 = 117, P_penv_l1 = 118, P_penv_l2 = 119, P_penv_l3 = 120, P_op1_eg_ks_lo = 22, P_op1_eg_ks_hi = 23, P_penv_ks_lo = 121, P_penv_ks_hi = 122, P_op1_eg_vs_amount = 26, P_penv_vs = 123, P_op1_lfo_rate = 10, P_op1_lfo_depth = 11, P_op1_lfo_wave = 12, P_pitch_rate = 124, P_pitch_depth = 125, P_pitch_wave = 126, P_filter_on = 283, P_filter_type = 282, P_fenv_r1 = 285, P_fenv_r2 = 286, P_fenv_r3 = 287, P_fenv_r4 = 288, P_fenv_l1 = 289, P_fenv_l2 = 290, P_fenv_l3 = 291, P_fenv_depth = 284, P_fold_on = 295, P_fold_threshold = 293, P_fold_folds = 294, P_filter2_on = 301, P_cutoff2 = 298, P_res2 = 299, P_filter2_type = 300, P_f1_cutoff_ks_lo = 271, P_f1_cutoff_ks_hi = 272, P_fenv_ks_lo = 273, P_fenv_ks_hi = 274, P_f2_cutoff_ks_lo = 275, P_f2_cutoff_ks_hi = 276, P_f1_cutoff_vs = 277, P_f2_cutoff_vs = 278, P_fenv_vs = 279, P_level_p0 = 309, P_delay_p0 = 311, P_level_p1 = 310, P_delay_p1 = 312, P_low_p0 = 305, P_high_p0 = 307, P_low_p1 = 306, P_high_p1 = 308, P_channel_p0 = 303, P_channel_p1 = 304, P_breakpoint = 268, P_key_sens_on = 269, P_vel_sens_on = 270, P_mode = 127, P_note_priority = 133, P_legato = 131, P_portamento = 132, P_unison_count = 128, P_unison_detune = 129, P_detune = 130, N_PARAMS = 313 };
 
 static const ui_widget W_0_0[] = {
-    { UI_ALGO, 2, 0, 10, P_algorithm, 0, 0, 0, 0, 0 },
+    { UI_PARAM_ROW, 2, 0, 1, P_cutoff, "CUTOFF", 0, 0, 0, 0 },
+    { UI_PARAM_ROW, 3, 0, 1, P_res, "RES", 0, 0, 0, 0 },
+    { UI_PARAM_ROW, 4, 0, 1, P_fold, "FOLD", 0, 0, 0, 0 },
+    { UI_PARAM_ROW, 5, 0, 1, P_op1_feedback, "OP1 FB", 0, 0, 0, 0 },
 };
 static const ui_widget W_0_1[] = {
-    { UI_ENVELOPE, 2, 0, 2, 0, 0, 0, 0, 0, 0 },
-    { UI_ENVELOPE, 4, 0, 2, 0, 0, 0, 0, 0, 0 },
-    { UI_ENVELOPE, 6, 0, 2, 0, 0, 0, 0, 0, 0 },
-    { UI_ENVELOPE, 8, 0, 2, 0, 0, 0, 0, 0, 0 },
+    { UI_ALGO, 2, 0, 10, P_algorithm, 0, 0, 0, 0, 0 },
 };
 static const ui_widget W_0_2[] = {
+    { UI_ENVELOPE, 2, 0, 2, 0, 0, 0, 0, 0, 0 },
+    { UI_ENVELOPE, 4, 0, 2, 1, 0, 0, 0, 0, 0 },
+    { UI_ENVELOPE, 6, 0, 2, 2, 0, 0, 0, 0, 0 },
+    { UI_ENVELOPE, 8, 0, 2, 3, 0, 0, 0, 0, 0 },
+};
+static const ui_widget W_0_3[] = {
     { UI_SCOPE, 2, 0, 2, 0, 0, 0, 0, 0, 0 },
     { UI_SCOPE, 4, 0, 2, 1, 0, 0, 0, 0, 0 },
     { UI_SCOPE, 6, 0, 2, 2, 0, 0, 0, 0, 0 },
     { UI_SCOPE, 8, 0, 2, 3, 0, 0, 0, 0, 0 },
 };
-static const ui_widget W_0_3[] = {
+static const ui_widget W_0_4[] = {
     { UI_SPECTRO, 2, 0, 2, 0, 0, 0, 0, 0, 0 },
     { UI_SPECTRO, 4, 0, 2, 1, 0, 0, 0, 0, 0 },
     { UI_SPECTRO, 6, 0, 2, 2, 0, 0, 0, 0, 0 },
     { UI_SPECTRO, 8, 0, 2, 3, 0, 0, 0, 0, 0 },
 };
-static const ui_widget W_0_4[] = {
+static const ui_widget W_0_5[] = {
     { UI_SCOPE, 3, 0, 4, 128, 0, 0, 0, 0, 0 },
     { UI_SCOPE, 8, 0, 4, 129, 0, 0, 0, 0, 0 },
 };
-static const ui_widget W_0_5[] = {
+static const ui_widget W_0_6[] = {
     { UI_SPECTRO, 3, 0, 4, 128, 0, 0, 0, 0, 0 },
     { UI_SPECTRO, 8, 0, 4, 129, 0, 0, 0, 0, 0 },
 };
-static const ui_widget W_0_6[] = {
+static const ui_widget W_0_7[] = {
     { UI_SCOPE, 3, 0, 8, 192, 0, 0, 0, 0, 0 },
 };
-static const ui_widget W_0_7[] = {
+static const ui_widget W_0_8[] = {
     { UI_SPECTRO, 3, 0, 8, 192, 0, 0, 0, 0, 0 },
 };
 static const ui_page PG_0[] = {
-    { "ALGORITHM", 1, W_0_0, (uint8_t)(sizeof W_0_0 / sizeof W_0_0[0]) },
-    { "A-ENVS", 5, W_0_1, (uint8_t)(sizeof W_0_1 / sizeof W_0_1[0]) },
-    { "SCOPES", 5, W_0_2, (uint8_t)(sizeof W_0_2 / sizeof W_0_2[0]) },
-    { "SPECTROS", 5, W_0_3, (uint8_t)(sizeof W_0_3 / sizeof W_0_3[0]) },
-    { "SCOPES", 3, W_0_4, (uint8_t)(sizeof W_0_4 / sizeof W_0_4[0]) },
-    { "SPECTROS", 3, W_0_5, (uint8_t)(sizeof W_0_5 / sizeof W_0_5[0]) },
-    { "POST-FX MULTI-PATCH SCOPE", 4, W_0_6, (uint8_t)(sizeof W_0_6 / sizeof W_0_6[0]) },
-    { "POST-FX MULTI-PATCH SPECTRO", 4, W_0_7, (uint8_t)(sizeof W_0_7 / sizeof W_0_7[0]) },
+    { "PERFORMANCE", 4, W_0_0, (uint8_t)(sizeof W_0_0 / sizeof W_0_0[0]) },
+    { "ALGORITHM", 1, W_0_1, (uint8_t)(sizeof W_0_1 / sizeof W_0_1[0]) },
+    { "A-ENVS", 5, W_0_2, (uint8_t)(sizeof W_0_2 / sizeof W_0_2[0]) },
+    { "SCOPES", 5, W_0_3, (uint8_t)(sizeof W_0_3 / sizeof W_0_3[0]) },
+    { "SPECTROS", 5, W_0_4, (uint8_t)(sizeof W_0_4 / sizeof W_0_4[0]) },
+    { "SCOPES", 3, W_0_5, (uint8_t)(sizeof W_0_5 / sizeof W_0_5[0]) },
+    { "SPECTROS", 3, W_0_6, (uint8_t)(sizeof W_0_6 / sizeof W_0_6[0]) },
+    { "POST-FX MULTI-PATCH SCOPE", 4, W_0_7, (uint8_t)(sizeof W_0_7 / sizeof W_0_7[0]) },
+    { "POST-FX MULTI-PATCH SPECTRO", 4, W_0_8, (uint8_t)(sizeof W_0_8 / sizeof W_0_8[0]) },
 };
 static const ui_widget W_1_0[] = {
     { UI_OP_ROW, 2, 0, 1, 0, "RATIO", 0, 0, 0, 0 },
@@ -85,13 +92,13 @@ static const ui_widget W_2_0[] = {
     { UI_OP_ROW, 3, 0, 1, 11, "DECAY1 RATE", 0, 0, 0, 0 },
     { UI_OP_ROW, 4, 0, 1, 12, "DECAY2 RATE", 0, 0, 0, 0 },
     { UI_OP_ROW, 5, 0, 1, 13, "RELEASE RATE", 0, 0, 0, 0 },
-    { UI_ENVELOPE, 6, 0, 5, 0, 0, 0, 0, 0, 0 },
+    { UI_ENVELOPE, 6, 0, 5, 0xFFFF, 0, 0, 0, 0, 0 },
 };
 static const ui_widget W_2_1[] = {
     { UI_OP_ROW, 2, 0, 1, 14, "LEVEL 1", 0, 0, 0, 0 },
     { UI_OP_ROW, 3, 0, 1, 15, "LEVEL 2", 0, 0, 0, 0 },
     { UI_OP_ROW, 4, 0, 1, 16, "SUSTAIN", 0, 0, 0, 0 },
-    { UI_ENVELOPE, 5, 0, 5, 0, 0, 0, 0, 0, 0 },
+    { UI_ENVELOPE, 5, 0, 5, 0xFFFF, 0, 0, 0, 0, 0 },
 };
 static const ui_widget W_2_2[] = {
     { UI_PARAM_ROW, 2, 0, 1, P_penv_on, "ON", 0, 0, 0, 0 },
@@ -226,11 +233,11 @@ static const ui_widget W_5_5[] = {
     { UI_PART_ROW, 3, 0, 1, 11, "PRIORITY", 0, 0, 0, 0 },
     { UI_PART_ROW, 4, 0, 1, 12, "LEGATO", 0, 0, 0, 0 },
     { UI_PART_ROW, 5, 0, 1, 13, "PORTA", 0, 0, 0, 0 },
-    { UI_PART_ROW, 6, 0, 1, 14, "TUNE", 0, 0, 0, 0 },
 };
 static const ui_widget W_5_6[] = {
-    { UI_PART_ROW, 2, 0, 1, 15, "VOICES", 0, 0, 0, 0 },
-    { UI_PART_ROW, 3, 0, 1, 16, "DETUNE", 0, 0, 0, 0 },
+    { UI_PART_ROW, 2, 0, 1, 14, "VOICES", 0, 0, 0, 0 },
+    { UI_PART_ROW, 3, 0, 1, 15, "DETUNE", 0, 0, 0, 0 },
+    { UI_PART_ROW, 4, 0, 1, 16, "TUNE", 0, 0, 0, 0 },
 };
 static const ui_widget W_5_7[] = {
     { UI_NAME, 2, 0, 1, 0, "single part 1 name", 0, 0, 0, 0 },
@@ -317,7 +324,7 @@ static const ui_binding GLOBAL_BIND[] = {
 };
 
 static const ui_context CTX[] = {
-    { "home", PG_0, 8, BIND_0, 4, 0, 0 },
+    { "home", PG_0, 9, BIND_0, 4, 0, 0 },
     { "edit", PG_1, 4, BIND_1, 4, 0, 0 },
     { "env", PG_2, 6, BIND_2, 4, 0, 0 },
     { "lfo", PG_3, 2, BIND_3, 4, 0, 0 },
@@ -329,7 +336,7 @@ static const uint16_t MUTE_TBL[8] = { 27, 55, 83, 111, 161, 189, 217, 245 };
 static const uint16_t OP_PARAM[184] = { 0, 16, 17, 2, 18, 19, 20, 21, 24, 25, 3, 4, 5, 6, 7, 8, 9, 22, 23, 26, 10, 11, 12, 28, 44, 45, 30, 46, 47, 48, 49, 52, 53, 31, 32, 33, 34, 35, 36, 37, 50, 51, 54, 38, 39, 40, 56, 72, 73, 58, 74, 75, 76, 77, 80, 81, 59, 60, 61, 62, 63, 64, 65, 78, 79, 82, 66, 67, 68, 84, 100, 101, 86, 102, 103, 104, 105, 108, 109, 87, 88, 89, 90, 91, 92, 93, 106, 107, 110, 94, 95, 96, 134, 150, 151, 136, 152, 153, 154, 155, 158, 159, 137, 138, 139, 140, 141, 142, 143, 156, 157, 160, 144, 145, 146, 162, 178, 179, 164, 180, 181, 182, 183, 186, 187, 165, 166, 167, 168, 169, 170, 171, 184, 185, 188, 172, 173, 174, 190, 206, 207, 192, 208, 209, 210, 211, 214, 215, 193, 194, 195, 196, 197, 198, 199, 212, 213, 216, 200, 201, 202, 218, 234, 235, 220, 236, 237, 238, 239, 242, 243, 221, 222, 223, 224, 225, 226, 227, 240, 241, 244, 228, 229, 230 };
 static const uint16_t ENV_PARAM[56] = { 3, 4, 5, 6, 7, 8, 9, 31, 32, 33, 34, 35, 36, 37, 59, 60, 61, 62, 63, 64, 65, 87, 88, 89, 90, 91, 92, 93, 137, 138, 139, 140, 141, 142, 143, 165, 166, 167, 168, 169, 170, 171, 193, 194, 195, 196, 197, 198, 199, 221, 222, 223, 224, 225, 226, 227 };
 static const uint16_t GENV_PARAM[14] = { 114, 115, 116, 117, 118, 119, 120, 285, 286, 287, 288, 289, 290, 291 };
-static const uint16_t PART_PARAM[34] = { 1, 29, 57, 85, 121, 122, 123, 124, 125, 126, 127, 133, 131, 132, 130, 128, 129, 135, 163, 191, 219, 255, 256, 257, 258, 259, 260, 261, 267, 265, 266, 264, 262, 263 };
+static const uint16_t PART_PARAM[34] = { 1, 29, 57, 85, 121, 122, 123, 124, 125, 126, 127, 133, 131, 132, 128, 129, 130, 135, 163, 191, 219, 255, 256, 257, 258, 259, 260, 261, 267, 265, 266, 262, 263, 264 };
 static const int32_t LM_0[92] = {
     32768, 46531, 51119, 57017, 65536, 93062, 98304, 102237, 114033, 131072, 139592, 153355,
     163840, 171049, 186123, 196608, 204473, 228066, 229376, 232653, 255591, 262144, 279184, 285082,
@@ -348,6 +355,6 @@ static const int32_t LM_1[25] = {
 static const ui_param_disp DISP_TBL[313] = { { UI_DISP_RATIO, 0, 32768, 1048576, 1, 92, LM_0 }, { UI_DISP_CENT, 0, -50, 50, 0, 0, 0 }, { UI_DISP_WAVE, 0, 0, 11, 0, 0, 0 }, { UI_DISP_RAW, 0, 0, 99, 0, 0, 0 }, { UI_DISP_RAW, 0, 0, 99, 0, 0, 0 }, { UI_DISP_RAW, 0, 0, 99, 0, 0, 0 }, { UI_DISP_RAW, 0, 0, 99, 0, 0, 0 }, { UI_DISP_RAW, 0, 0, 99, 0, 0, 0 }, { UI_DISP_RAW, 0, 0, 99, 0, 0, 0 }, { UI_DISP_RAW, 0, 0, 99, 0, 0, 0 }, { UI_DISP_HZ, 1, 0, 20000000, 0, 0, 0 }, { UI_DISP_PCT, 0, 0, 32767, 0, 0, 0 }, { UI_DISP_WAVE, 0, 0, 11, 0, 0, 0 }, { UI_DISP_RAW, 0, -32768, 32767, 0, 0, 0 }, { UI_DISP_RAW, 0, -32768, 32767, 0, 0, 0 }, { UI_DISP_RAW, 0, -32768, 32767, 0, 0, 0 }, { UI_DISP_RAW, 0, 0, 99, 0, 0, 0 }, { UI_DISP_PCT, 0, 0, 32767, 0, 0, 0 }, { UI_DISP_PCT_BIP, 0, -100, 100, 0, 0, 0 }, { UI_DISP_PCT_BIP, 0, -100, 100, 0, 0, 0 }, { UI_DISP_PCT_BIP, 0, -100, 100, 0, 0, 0 }, { UI_DISP_PCT_BIP, 0, -100, 100, 0, 0, 0 }, { UI_DISP_PCT_BIP, 0, -100, 100, 0, 0, 0 }, { UI_DISP_PCT_BIP, 0, -100, 100, 0, 0, 0 }, { UI_DISP_PCT_BIP, 0, -100, 100, 0, 0, 0 }, { UI_DISP_PCT_BIP, 0, -100, 100, 0, 0, 0 }, { UI_DISP_PCT_BIP, 0, -100, 100, 0, 0, 0 }, { UI_DISP_ONOFF_INV, 0, 0, 1, 0, 0, 0 }, { UI_DISP_RATIO, 0, 32768, 1048576, 1, 92, LM_0 }, { UI_DISP_CENT, 0, -50, 50, 0, 0, 0 }, { UI_DISP_WAVE, 0, 0, 11, 0, 0, 0 }, { UI_DISP_RAW, 0, 0, 99, 0, 0, 0 }, { UI_DISP_RAW, 0, 0, 99, 0, 0, 0 }, { UI_DISP_RAW, 0, 0, 99, 0, 0, 0 }, { UI_DISP_RAW, 0, 0, 99, 0, 0, 0 }, { UI_DISP_RAW, 0, 0, 99, 0, 0, 0 }, { UI_DISP_RAW, 0, 0, 99, 0, 0, 0 }, { UI_DISP_RAW, 0, 0, 99, 0, 0, 0 }, { UI_DISP_HZ, 1, 0, 20000000, 0, 0, 0 }, { UI_DISP_PCT, 0, 0, 32767, 0, 0, 0 }, { UI_DISP_WAVE, 0, 0, 11, 0, 0, 0 }, { UI_DISP_RAW, 0, -32768, 32767, 0, 0, 0 }, { UI_DISP_RAW, 0, -32768, 32767, 0, 0, 0 }, { UI_DISP_RAW, 0, -32768, 32767, 0, 0, 0 }, { UI_DISP_RAW, 0, 0, 99, 0, 0, 0 }, { UI_DISP_PCT, 0, 0, 32767, 0, 0, 0 }, { UI_DISP_PCT_BIP, 0, -100, 100, 0, 0, 0 }, { UI_DISP_PCT_BIP, 0, -100, 100, 0, 0, 0 }, { UI_DISP_PCT_BIP, 0, -100, 100, 0, 0, 0 }, { UI_DISP_PCT_BIP, 0, -100, 100, 0, 0, 0 }, { UI_DISP_PCT_BIP, 0, -100, 100, 0, 0, 0 }, { UI_DISP_PCT_BIP, 0, -100, 100, 0, 0, 0 }, { UI_DISP_PCT_BIP, 0, -100, 100, 0, 0, 0 }, { UI_DISP_PCT_BIP, 0, -100, 100, 0, 0, 0 }, { UI_DISP_PCT_BIP, 0, -100, 100, 0, 0, 0 }, { UI_DISP_ONOFF_INV, 0, 0, 1, 0, 0, 0 }, { UI_DISP_RATIO, 0, 32768, 1048576, 1, 92, LM_0 }, { UI_DISP_CENT, 0, -50, 50, 0, 0, 0 }, { UI_DISP_WAVE, 0, 0, 11, 0, 0, 0 }, { UI_DISP_RAW, 0, 0, 99, 0, 0, 0 }, { UI_DISP_RAW, 0, 0, 99, 0, 0, 0 }, { UI_DISP_RAW, 0, 0, 99, 0, 0, 0 }, { UI_DISP_RAW, 0, 0, 99, 0, 0, 0 }, { UI_DISP_RAW, 0, 0, 99, 0, 0, 0 }, { UI_DISP_RAW, 0, 0, 99, 0, 0, 0 }, { UI_DISP_RAW, 0, 0, 99, 0, 0, 0 }, { UI_DISP_HZ, 1, 0, 20000000, 0, 0, 0 }, { UI_DISP_PCT, 0, 0, 32767, 0, 0, 0 }, { UI_DISP_WAVE, 0, 0, 11, 0, 0, 0 }, { UI_DISP_RAW, 0, -32768, 32767, 0, 0, 0 }, { UI_DISP_RAW, 0, -32768, 32767, 0, 0, 0 }, { UI_DISP_RAW, 0, -32768, 32767, 0, 0, 0 }, { UI_DISP_RAW, 0, 0, 99, 0, 0, 0 }, { UI_DISP_PCT, 0, 0, 32767, 0, 0, 0 }, { UI_DISP_PCT_BIP, 0, -100, 100, 0, 0, 0 }, { UI_DISP_PCT_BIP, 0, -100, 100, 0, 0, 0 }, { UI_DISP_PCT_BIP, 0, -100, 100, 0, 0, 0 }, { UI_DISP_PCT_BIP, 0, -100, 100, 0, 0, 0 }, { UI_DISP_PCT_BIP, 0, -100, 100, 0, 0, 0 }, { UI_DISP_PCT_BIP, 0, -100, 100, 0, 0, 0 }, { UI_DISP_PCT_BIP, 0, -100, 100, 0, 0, 0 }, { UI_DISP_PCT_BIP, 0, -100, 100, 0, 0, 0 }, { UI_DISP_PCT_BIP, 0, -100, 100, 0, 0, 0 }, { UI_DISP_ONOFF_INV, 0, 0, 1, 0, 0, 0 }, { UI_DISP_RATIO, 0, 32768, 1048576, 1, 92, LM_0 }, { UI_DISP_CENT, 0, -50, 50, 0, 0, 0 }, { UI_DISP_WAVE, 0, 0, 11, 0, 0, 0 }, { UI_DISP_RAW, 0, 0, 99, 0, 0, 0 }, { UI_DISP_RAW, 0, 0, 99, 0, 0, 0 }, { UI_DISP_RAW, 0, 0, 99, 0, 0, 0 }, { UI_DISP_RAW, 0, 0, 99, 0, 0, 0 }, { UI_DISP_RAW, 0, 0, 99, 0, 0, 0 }, { UI_DISP_RAW, 0, 0, 99, 0, 0, 0 }, { UI_DISP_RAW, 0, 0, 99, 0, 0, 0 }, { UI_DISP_HZ, 1, 0, 20000000, 0, 0, 0 }, { UI_DISP_PCT, 0, 0, 32767, 0, 0, 0 }, { UI_DISP_WAVE, 0, 0, 11, 0, 0, 0 }, { UI_DISP_RAW, 0, -32768, 32767, 0, 0, 0 }, { UI_DISP_RAW, 0, -32768, 32767, 0, 0, 0 }, { UI_DISP_RAW, 0, -32768, 32767, 0, 0, 0 }, { UI_DISP_RAW, 0, 0, 99, 0, 0, 0 }, { UI_DISP_PCT, 0, 0, 32767, 0, 0, 0 }, { UI_DISP_PCT_BIP, 0, -100, 100, 0, 0, 0 }, { UI_DISP_PCT_BIP, 0, -100, 100, 0, 0, 0 }, { UI_DISP_PCT_BIP, 0, -100, 100, 0, 0, 0 }, { UI_DISP_PCT_BIP, 0, -100, 100, 0, 0, 0 }, { UI_DISP_PCT_BIP, 0, -100, 100, 0, 0, 0 }, { UI_DISP_PCT_BIP, 0, -100, 100, 0, 0, 0 }, { UI_DISP_PCT_BIP, 0, -100, 100, 0, 0, 0 }, { UI_DISP_PCT_BIP, 0, -100, 100, 0, 0, 0 }, { UI_DISP_PCT_BIP, 0, -100, 100, 0, 0, 0 }, { UI_DISP_ONOFF_INV, 0, 0, 1, 0, 0, 0 }, { UI_DISP_RAW, 0, 0, 7, 0, 0, 0 }, { UI_DISP_ONOFF, 0, 0, 1, 0, 0, 0 }, { UI_DISP_RAW, 0, 0, 99, 0, 0, 0 }, { UI_DISP_RAW, 0, 0, 99, 0, 0, 0 }, { UI_DISP_RAW, 0, 0, 99, 0, 0, 0 }, { UI_DISP_RAW, 0, 0, 99, 0, 0, 0 }, { UI_DISP_SEMI, 0, -32768, 32767, 1, 25, LM_1 }, { UI_DISP_SEMI, 0, -32768, 32767, 1, 25, LM_1 }, { UI_DISP_SEMI, 0, -32768, 32767, 1, 25, LM_1 }, { UI_DISP_PCT_BIP, 0, -100, 100, 0, 0, 0 }, { UI_DISP_PCT_BIP, 0, -100, 100, 0, 0, 0 }, { UI_DISP_PCT_BIP, 0, -100, 100, 0, 0, 0 }, { UI_DISP_HZ, 1, 0, 20000000, 0, 0, 0 }, { UI_DISP_PCT, 0, 0, 3277, 0, 0, 0 }, { UI_DISP_WAVE, 0, 0, 11, 0, 0, 0 }, { UI_DISP_MODE, 0, 0, 1, 0, 0, 0 }, { UI_DISP_RAW, 0, 1, 8, 0, 0, 0 }, { UI_DISP_RAW, 0, 0, 200, 0, 0, 0 }, { UI_DISP_CENT, 0, -100, 100, 0, 0, 0 }, { UI_DISP_ONOFF, 0, 0, 1, 0, 0, 0 }, { UI_DISP_PORTA, 1, 0, 5000, 0, 0, 0 }, { UI_DISP_PRIORITY, 0, 0, 2, 0, 0, 0 }, { UI_DISP_RATIO, 0, 32768, 1048576, 1, 92, LM_0 }, { UI_DISP_CENT, 0, -50, 50, 0, 0, 0 }, { UI_DISP_WAVE, 0, 0, 11, 0, 0, 0 }, { UI_DISP_RAW, 0, 0, 99, 0, 0, 0 }, { UI_DISP_RAW, 0, 0, 99, 0, 0, 0 }, { UI_DISP_RAW, 0, 0, 99, 0, 0, 0 }, { UI_DISP_RAW, 0, 0, 99, 0, 0, 0 }, { UI_DISP_RAW, 0, 0, 99, 0, 0, 0 }, { UI_DISP_RAW, 0, 0, 99, 0, 0, 0 }, { UI_DISP_RAW, 0, 0, 99, 0, 0, 0 }, { UI_DISP_HZ, 1, 0, 20000000, 0, 0, 0 }, { UI_DISP_PCT, 0, 0, 32767, 0, 0, 0 }, { UI_DISP_WAVE, 0, 0, 11, 0, 0, 0 }, { UI_DISP_RAW, 0, -32768, 32767, 0, 0, 0 }, { UI_DISP_RAW, 0, -32768, 32767, 0, 0, 0 }, { UI_DISP_RAW, 0, -32768, 32767, 0, 0, 0 }, { UI_DISP_RAW, 0, 0, 99, 0, 0, 0 }, { UI_DISP_PCT, 0, 0, 32767, 0, 0, 0 }, { UI_DISP_PCT_BIP, 0, -100, 100, 0, 0, 0 }, { UI_DISP_PCT_BIP, 0, -100, 100, 0, 0, 0 }, { UI_DISP_PCT_BIP, 0, -100, 100, 0, 0, 0 }, { UI_DISP_PCT_BIP, 0, -100, 100, 0, 0, 0 }, { UI_DISP_PCT_BIP, 0, -100, 100, 0, 0, 0 }, { UI_DISP_PCT_BIP, 0, -100, 100, 0, 0, 0 }, { UI_DISP_PCT_BIP, 0, -100, 100, 0, 0, 0 }, { UI_DISP_PCT_BIP, 0, -100, 100, 0, 0, 0 }, { UI_DISP_PCT_BIP, 0, -100, 100, 0, 0, 0 }, { UI_DISP_ONOFF_INV, 0, 0, 1, 0, 0, 0 }, { UI_DISP_RATIO, 0, 32768, 1048576, 1, 92, LM_0 }, { UI_DISP_CENT, 0, -50, 50, 0, 0, 0 }, { UI_DISP_WAVE, 0, 0, 11, 0, 0, 0 }, { UI_DISP_RAW, 0, 0, 99, 0, 0, 0 }, { UI_DISP_RAW, 0, 0, 99, 0, 0, 0 }, { UI_DISP_RAW, 0, 0, 99, 0, 0, 0 }, { UI_DISP_RAW, 0, 0, 99, 0, 0, 0 }, { UI_DISP_RAW, 0, 0, 99, 0, 0, 0 }, { UI_DISP_RAW, 0, 0, 99, 0, 0, 0 }, { UI_DISP_RAW, 0, 0, 99, 0, 0, 0 }, { UI_DISP_HZ, 1, 0, 20000000, 0, 0, 0 }, { UI_DISP_PCT, 0, 0, 32767, 0, 0, 0 }, { UI_DISP_WAVE, 0, 0, 11, 0, 0, 0 }, { UI_DISP_RAW, 0, -32768, 32767, 0, 0, 0 }, { UI_DISP_RAW, 0, -32768, 32767, 0, 0, 0 }, { UI_DISP_RAW, 0, -32768, 32767, 0, 0, 0 }, { UI_DISP_RAW, 0, 0, 99, 0, 0, 0 }, { UI_DISP_PCT, 0, 0, 32767, 0, 0, 0 }, { UI_DISP_PCT_BIP, 0, -100, 100, 0, 0, 0 }, { UI_DISP_PCT_BIP, 0, -100, 100, 0, 0, 0 }, { UI_DISP_PCT_BIP, 0, -100, 100, 0, 0, 0 }, { UI_DISP_PCT_BIP, 0, -100, 100, 0, 0, 0 }, { UI_DISP_PCT_BIP, 0, -100, 100, 0, 0, 0 }, { UI_DISP_PCT_BIP, 0, -100, 100, 0, 0, 0 }, { UI_DISP_PCT_BIP, 0, -100, 100, 0, 0, 0 }, { UI_DISP_PCT_BIP, 0, -100, 100, 0, 0, 0 }, { UI_DISP_PCT_BIP, 0, -100, 100, 0, 0, 0 }, { UI_DISP_ONOFF_INV, 0, 0, 1, 0, 0, 0 }, { UI_DISP_RATIO, 0, 32768, 1048576, 1, 92, LM_0 }, { UI_DISP_CENT, 0, -50, 50, 0, 0, 0 }, { UI_DISP_WAVE, 0, 0, 11, 0, 0, 0 }, { UI_DISP_RAW, 0, 0, 99, 0, 0, 0 }, { UI_DISP_RAW, 0, 0, 99, 0, 0, 0 }, { UI_DISP_RAW, 0, 0, 99, 0, 0, 0 }, { UI_DISP_RAW, 0, 0, 99, 0, 0, 0 }, { UI_DISP_RAW, 0, 0, 99, 0, 0, 0 }, { UI_DISP_RAW, 0, 0, 99, 0, 0, 0 }, { UI_DISP_RAW, 0, 0, 99, 0, 0, 0 }, { UI_DISP_HZ, 1, 0, 20000000, 0, 0, 0 }, { UI_DISP_PCT, 0, 0, 32767, 0, 0, 0 }, { UI_DISP_WAVE, 0, 0, 11, 0, 0, 0 }, { UI_DISP_RAW, 0, -32768, 32767, 0, 0, 0 }, { UI_DISP_RAW, 0, -32768, 32767, 0, 0, 0 }, { UI_DISP_RAW, 0, -32768, 32767, 0, 0, 0 }, { UI_DISP_RAW, 0, 0, 99, 0, 0, 0 }, { UI_DISP_PCT, 0, 0, 32767, 0, 0, 0 }, { UI_DISP_PCT_BIP, 0, -100, 100, 0, 0, 0 }, { UI_DISP_PCT_BIP, 0, -100, 100, 0, 0, 0 }, { UI_DISP_PCT_BIP, 0, -100, 100, 0, 0, 0 }, { UI_DISP_PCT_BIP, 0, -100, 100, 0, 0, 0 }, { UI_DISP_PCT_BIP, 0, -100, 100, 0, 0, 0 }, { UI_DISP_PCT_BIP, 0, -100, 100, 0, 0, 0 }, { UI_DISP_PCT_BIP, 0, -100, 100, 0, 0, 0 }, { UI_DISP_PCT_BIP, 0, -100, 100, 0, 0, 0 }, { UI_DISP_PCT_BIP, 0, -100, 100, 0, 0, 0 }, { UI_DISP_ONOFF_INV, 0, 0, 1, 0, 0, 0 }, { UI_DISP_RATIO, 0, 32768, 1048576, 1, 92, LM_0 }, { UI_DISP_CENT, 0, -50, 50, 0, 0, 0 }, { UI_DISP_WAVE, 0, 0, 11, 0, 0, 0 }, { UI_DISP_RAW, 0, 0, 99, 0, 0, 0 }, { UI_DISP_RAW, 0, 0, 99, 0, 0, 0 }, { UI_DISP_RAW, 0, 0, 99, 0, 0, 0 }, { UI_DISP_RAW, 0, 0, 99, 0, 0, 0 }, { UI_DISP_RAW, 0, 0, 99, 0, 0, 0 }, { UI_DISP_RAW, 0, 0, 99, 0, 0, 0 }, { UI_DISP_RAW, 0, 0, 99, 0, 0, 0 }, { UI_DISP_HZ, 1, 0, 20000000, 0, 0, 0 }, { UI_DISP_PCT, 0, 0, 32767, 0, 0, 0 }, { UI_DISP_WAVE, 0, 0, 11, 0, 0, 0 }, { UI_DISP_RAW, 0, -32768, 32767, 0, 0, 0 }, { UI_DISP_RAW, 0, -32768, 32767, 0, 0, 0 }, { UI_DISP_RAW, 0, -32768, 32767, 0, 0, 0 }, { UI_DISP_RAW, 0, 0, 99, 0, 0, 0 }, { UI_DISP_PCT, 0, 0, 32767, 0, 0, 0 }, { UI_DISP_PCT_BIP, 0, -100, 100, 0, 0, 0 }, { UI_DISP_PCT_BIP, 0, -100, 100, 0, 0, 0 }, { UI_DISP_PCT_BIP, 0, -100, 100, 0, 0, 0 }, { UI_DISP_PCT_BIP, 0, -100, 100, 0, 0, 0 }, { UI_DISP_PCT_BIP, 0, -100, 100, 0, 0, 0 }, { UI_DISP_PCT_BIP, 0, -100, 100, 0, 0, 0 }, { UI_DISP_PCT_BIP, 0, -100, 100, 0, 0, 0 }, { UI_DISP_PCT_BIP, 0, -100, 100, 0, 0, 0 }, { UI_DISP_PCT_BIP, 0, -100, 100, 0, 0, 0 }, { UI_DISP_ONOFF_INV, 0, 0, 1, 0, 0, 0 }, { UI_DISP_RAW, 0, 0, 7, 0, 0, 0 }, { UI_DISP_ONOFF, 0, 0, 1, 0, 0, 0 }, { UI_DISP_RAW, 0, 0, 99, 0, 0, 0 }, { UI_DISP_RAW, 0, 0, 99, 0, 0, 0 }, { UI_DISP_RAW, 0, 0, 99, 0, 0, 0 }, { UI_DISP_RAW, 0, 0, 99, 0, 0, 0 }, { UI_DISP_SEMI, 0, -32768, 32767, 1, 25, LM_1 }, { UI_DISP_SEMI, 0, -32768, 32767, 1, 25, LM_1 }, { UI_DISP_SEMI, 0, -32768, 32767, 1, 25, LM_1 }, { UI_DISP_PCT_BIP, 0, -100, 100, 0, 0, 0 }, { UI_DISP_PCT_BIP, 0, -100, 100, 0, 0, 0 }, { UI_DISP_PCT_BIP, 0, -100, 100, 0, 0, 0 }, { UI_DISP_HZ, 1, 0, 20000000, 0, 0, 0 }, { UI_DISP_PCT, 0, 0, 3277, 0, 0, 0 }, { UI_DISP_WAVE, 0, 0, 11, 0, 0, 0 }, { UI_DISP_MODE, 0, 0, 1, 0, 0, 0 }, { UI_DISP_RAW, 0, 1, 8, 0, 0, 0 }, { UI_DISP_RAW, 0, 0, 200, 0, 0, 0 }, { UI_DISP_CENT, 0, -100, 100, 0, 0, 0 }, { UI_DISP_ONOFF, 0, 0, 1, 0, 0, 0 }, { UI_DISP_PORTA, 1, 0, 5000, 0, 0, 0 }, { UI_DISP_PRIORITY, 0, 0, 2, 0, 0, 0 }, { UI_DISP_NOTE, 0, 0, 127, 0, 0, 0 }, { UI_DISP_ONOFF, 0, 0, 1, 0, 0, 0 }, { UI_DISP_ONOFF, 0, 0, 1, 0, 0, 0 }, { UI_DISP_PCT_BIP, 0, -100, 100, 0, 0, 0 }, { UI_DISP_PCT_BIP, 0, -100, 100, 0, 0, 0 }, { UI_DISP_PCT_BIP, 0, -100, 100, 0, 0, 0 }, { UI_DISP_PCT_BIP, 0, -100, 100, 0, 0, 0 }, { UI_DISP_PCT_BIP, 0, -100, 100, 0, 0, 0 }, { UI_DISP_PCT_BIP, 0, -100, 100, 0, 0, 0 }, { UI_DISP_PCT_BIP, 0, -100, 100, 0, 0, 0 }, { UI_DISP_PCT_BIP, 0, -100, 100, 0, 0, 0 }, { UI_DISP_PCT_BIP, 0, -100, 100, 0, 0, 0 }, { UI_DISP_OFF_PCT, 1, 0, 65535, 0, 0, 0 }, { UI_DISP_PCT_INV, 0, 0, 65535, 0, 0, 0 }, { UI_DISP_FILTER, 0, 0, 2, 0, 0, 0 }, { UI_DISP_ONOFF, 0, 0, 1, 0, 0, 0 }, { UI_DISP_PCT, 0, 0, 65535, 0, 0, 0 }, { UI_DISP_RAW, 0, 0, 99, 0, 0, 0 }, { UI_DISP_RAW, 0, 0, 99, 0, 0, 0 }, { UI_DISP_RAW, 0, 0, 99, 0, 0, 0 }, { UI_DISP_RAW, 0, 0, 99, 0, 0, 0 }, { UI_DISP_RAW, 0, 0, 99, 0, 0, 0 }, { UI_DISP_RAW, 0, 0, 99, 0, 0, 0 }, { UI_DISP_RAW, 0, 0, 99, 0, 0, 0 }, { UI_DISP_PCT, 0, 0, 32767, 0, 0, 0 }, { UI_DISP_PCT, 0, 0, 32767, 0, 0, 0 }, { UI_DISP_RAW, 0, 1, 8, 0, 0, 0 }, { UI_DISP_ONOFF, 0, 0, 1, 0, 0, 0 }, { UI_DISP_FOLD, 0, 0, 0, 0, 0, 0 }, { UI_DISP_RAW, 0, -32768, 32767, 0, 0, 0 }, { UI_DISP_OFF_PCT, 1, 0, 65535, 0, 0, 0 }, { UI_DISP_PCT_INV, 0, 0, 65535, 0, 0, 0 }, { UI_DISP_FILTER, 0, 0, 2, 0, 0, 0 }, { UI_DISP_ONOFF, 0, 0, 1, 0, 0, 0 }, { UI_DISP_RAW, 0, -65536, 65535, 0, 0, 0 }, { UI_DISP_RAW, 0, -1, 15, 0, 0, 0 }, { UI_DISP_RAW, 0, -1, 15, 0, 0, 0 }, { UI_DISP_NOTE, 0, 0, 127, 0, 0, 0 }, { UI_DISP_NOTE, 0, 0, 127, 0, 0, 0 }, { UI_DISP_NOTE, 0, 0, 127, 0, 0, 0 }, { UI_DISP_NOTE, 0, 0, 127, 0, 0, 0 }, { UI_DISP_RAW, 0, 0, 99, 0, 0, 0 }, { UI_DISP_RAW, 0, 0, 99, 0, 0, 0 }, { UI_DISP_RAW, 0, 0, 1000, 0, 0, 0 }, { UI_DISP_RAW, 0, 0, 1000, 0, 0, 0 } };
 
 static const ui_tables PANEL = {
-    "type-p-fm1", 0, CTX, 6, GLOBAL_BIND, 15, MUTE_TBL, OP_PARAM, 4, 23, ENV_PARAM, PART_PARAM, 17, DISP_TBL, 112, 134, 2, 313, 130, GENV_PARAM, 2,
+    "type-p-fm1", 0, CTX, 6, GLOBAL_BIND, 15, MUTE_TBL, OP_PARAM, 4, 23, ENV_PARAM, PART_PARAM, 17, DISP_TBL, 112, 134, 2, 313, 134, GENV_PARAM, 2,
     "~SEL+EDIT~ copy page\n~2xSEL~ pts  ~SEL+ARP-REC~ mute pt\n~SEL~ ops  ~ARP-REC~ mute op",
 };

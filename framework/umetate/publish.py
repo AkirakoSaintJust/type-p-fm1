@@ -27,7 +27,7 @@ import tarfile
 import zipfile
 from datetime import UTC, datetime
 from pathlib import Path
-from typing import TypedDict
+from typing import TypedDict, cast
 
 from ._ir import to_c_identifier
 
@@ -144,8 +144,7 @@ The screen is the same 240 by 240 panel you see on the device.
 
 ## Manual
 
-- [User manual](docs/manual.md), the sound and every parameter.
-- [Panel reference](docs/panel.md), the controls, the pages, and how to save.
+- [User manual](docs/manual.md), the sound, every parameter, and the panel walkthrough.
 - [MIDI and SysEx](docs/midi-and-sysex.md), the CC map and the SysEx format.
 - [Patch sheet](docs/patch-sheet.md), a printable form for writing patches down.
 
@@ -418,7 +417,7 @@ def _project_title(synth_dir: Path, name: str) -> str:
         except (OSError, json.JSONDecodeError):
             return name
         if isinstance(raw, dict):
-            product = raw.get("product_name")
+            product = cast(dict[str, object], raw).get("product_name")
             if isinstance(product, str) and product:
                 return product
     return name

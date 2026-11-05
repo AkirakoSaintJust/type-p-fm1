@@ -1,14 +1,14 @@
-# Type P.fm1 1.0.1
+# Type P.fm1 1.0.2
 
-Released 2026-11-04 from source `31ecc64`.
+Released 2026-11-05 from source `2e31ca6`.
 
 ## Downloads
 
 | File | Platform | Format | Size | SHA-256 |
 | --- | --- | --- | --- | --- |
-| [`type-p-fm1.fwsc`](type-p-fm1.fwsc) | M-VAVE FM-1 | firmware | 597.9 kB | `1a1d53d3587db2dddcdd5d94c99b9acadfec5442bc568caae908c39291b28345` |
-| [`Type-P.fm1-CLAP-linux-x86_64.zip`](plugins/linux-x86_64/Type-P.fm1-CLAP-linux-x86_64.zip) | linux-x86_64 | CLAP | 5.5 MB | `a434b6288c0b49ac407b59d3ad7242ab6ac2bb02822f74532daf17df26fb8480` |
-| [`Type-P.fm1-VST3-linux-x86_64.zip`](plugins/linux-x86_64/Type-P.fm1-VST3-linux-x86_64.zip) | linux-x86_64 | VST3 | 5.7 MB | `45bb61f42f3735cb726f667c545ca74735173b212f84796c6f9b1006e71ed04e` |
+| [`type-p-fm1.fwsc`](type-p-fm1.fwsc) | M-VAVE FM-1 | firmware | 597.9 kB | `8c90c1acd1dbc83eedd7fc49f15d818e7c53d0ef403d710f9452da1273720f71` |
+| [`Type-P.fm1-CLAP-linux-x86_64.zip`](plugins/linux-x86_64/Type-P.fm1-CLAP-linux-x86_64.zip) | linux-x86_64 | CLAP | 5.6 MB | `4ba275eda9f7c8355d898fed44dbf525b9e6ef59f3b88ecfef261489ae48f834` |
+| [`Type-P.fm1-VST3-linux-x86_64.zip`](plugins/linux-x86_64/Type-P.fm1-VST3-linux-x86_64.zip) | linux-x86_64 | VST3 | 5.8 MB | `6ce29d9a6d9d7bb07ab53a50bda82dab5e2f39a143de21205ccfff0b5b1cf6d8` |
 
 The firmware is the device image. Flash it with `umetate flash`.
 The plugin archives are optional and use the same engine as the firmware

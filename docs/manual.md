@@ -92,7 +92,7 @@ A per-operator amplitude LFO. Rate sets the speed, depth sets the amount.
 
 ### Mute
 
-Turns the operator off entirely. Muting a modulator silences the carrier it
+Turns the operator off entirely. Muting a modulator cuts phase modulation to the operator it
 drives. Muting a carrier removes that carrier from the mix. That's useful if you're focusing on a particular operator stack or want to check what a certain operator adds to your patch.
 
 ## Poly, mono, and unison

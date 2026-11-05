@@ -5,38 +5,114 @@ on:
     tags: ["v*"]
   workflow_dispatch:
     inputs:
-      tag:
-        description: "Tag to release, for example v1.0.1"
+      version:
+        description: "Version to release, for example 1.0.2 or v1.0.2"
         required: true
+        type: string
       fwsc_url:
         description: "Optional URL to replace the committed type-p-fm1.fwsc"
         required: false
         default: ""
+        type: string
 
 permissions:
   contents: write
 
+concurrency:
+  group: release-${{ github.event_name == 'workflow_dispatch' && inputs.version || github.ref_name }}
+  cancel-in-progress: false
+
 jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    outputs:
+      tag: ${{ steps.version.outputs.tag }}
+      version: ${{ steps.version.outputs.version }}
+      commit: ${{ steps.version.outputs.commit }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Normalise the version and tag
+        id: version
+        env:
+          INPUT_VERSION: ${{ inputs.version }}
+          EVENT_NAME: ${{ github.event_name }}
+          REF: ${{ github.ref }}
+          REF_NAME: ${{ github.ref_name }}
+        run: |
+          set -euo pipefail
+          if [ "$EVENT_NAME" = "workflow_dispatch" ]; then
+            if [ "$REF" != "refs/heads/main" ]; then
+              echo "release: dispatch from main, not $REF" >&2
+              exit 1
+            fi
+            raw="$INPUT_VERSION"
+          else
+            raw="$REF_NAME"
+          fi
+          raw="$(printf '%s' "$raw" | tr -d '[:space:]')"
+          raw="${raw#v}"
+          if [[ ! "$raw" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "release: '$raw' is not a version like 1.0.2 or v1.0.2" >&2
+            exit 1
+          fi
+          tag="v$raw"
+          notes=$(sed -n 's/^## \([0-9][0-9.]*\)$/\1/p' CHANGELOG.md | head -1)
+          if [ "$notes" != "$raw" ]; then
+            echo "release: $tag does not match the newest CHANGELOG.md version $notes" >&2
+            exit 1
+          fi
+          if git rev-parse -q --verify "refs/tags/$tag" >/dev/null; then
+            commit=$(git rev-list -n 1 "$tag")
+          else
+            if [ "$EVENT_NAME" != "workflow_dispatch" ]; then
+              echo "release: $tag does not exist" >&2
+              exit 1
+            fi
+            commit=$(git rev-parse HEAD)
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git tag -a "$tag" -m "Type P.fm1 $raw" "$commit"
+            git push origin "refs/tags/$tag"
+          fi
+          {
+            echo "tag=$tag"
+            echo "version=$raw"
+            echo "commit=$commit"
+          } >> "$GITHUB_OUTPUT"
+          echo "release: $tag at $commit"
+
   plugins:
+    needs: prepare
+    name: ${{ matrix.platform }}
     strategy:
       fail-fast: false
       matrix:
         include:
           - platform: linux-x86_64
             os: ubuntu-latest
+            generator: Ninja
+          - platform: linux-aarch64
+            os: ubuntu-24.04-arm
+            generator: Ninja
           - platform: windows-x86_64
             os: windows-2022
+            generator: Visual Studio 17 2022
     runs-on: ${{ matrix.os }}
-    timeout-minutes: 60
+    timeout-minutes: 90
+    env:
+      BUILD_DIR: build/plugin-${{ matrix.platform }}
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: ${{ inputs.tag || github.ref }}
+          ref: ${{ needs.prepare.outputs.commit }}
       - name: Linux build dependencies
         if: runner.os == 'Linux'
         run: |
           sudo apt-get update
-          sudo apt-get install -y build-essential cmake ninja-build \
+          sudo apt-get install -y build-essential cmake ninja-build pkg-config \
             libasound2-dev libx11-dev libfreetype-dev libfontconfig1-dev \
             libgl1-mesa-dev libxrandr-dev libxinerama-dev libxcursor-dev \
             libxcomposite-dev libxrender-dev libxfixes-dev libxkbcommon-dev
@@ -47,57 +123,85 @@ jobs:
           arch: x64
       - name: Configure
         env:
-          CMAKE_GENERATOR: ${{ runner.os == 'Windows' && 'Visual Studio 17 2022' || 'Ninja' }}
+          CMAKE_GENERATOR: ${{ matrix.generator }}
           CMAKE_GENERATOR_PLATFORM: ${{ runner.os == 'Windows' && 'x64' || '' }}
         run: >
-          cmake -S framework/plugin -B build/plugin-${{ matrix.platform }}
+          cmake -S framework/plugin -B ${{ env.BUILD_DIR }}
           -DP1_BUILD_JUCE=ON -DP1_BUILD_CLAP=ON
           -DCMAKE_BUILD_TYPE=Release
+          -DFETCHCONTENT_SOURCE_DIR_JUCE=${{ github.workspace }}/vendor/deps/juce-src
+          -DFETCHCONTENT_SOURCE_DIR_CLAP-JUCE-EXTENSIONS=${{ github.workspace }}/vendor/deps/clap-juce-extensions-src
       - name: Build
         run: >
-          cmake --build build/plugin-${{ matrix.platform }}
+          cmake --build ${{ env.BUILD_DIR }}
           --config Release --parallel 4
       - name: Test
         shell: bash
         run: >
-          ctest --test-dir build/plugin-${{ matrix.platform }} -C Release
+          ctest --test-dir ${{ env.BUILD_DIR }} -C Release
           -E "linux_daws|plugin_editor_snapshot" --output-on-failure
       - uses: actions/upload-artifact@v4
         with:
           name: plugin-${{ matrix.platform }}
           if-no-files-found: error
           path: |
-            build/plugin-${{ matrix.platform }}/juce/type_p_fm1_artefacts/Release/VST3
-            build/plugin-${{ matrix.platform }}/juce/type_p_fm1_artefacts/Release/CLAP
+            ${{ env.BUILD_DIR }}/juce/type_p_fm1_artefacts/Release/VST3
+            ${{ env.BUILD_DIR }}/juce/type_p_fm1_artefacts/Release/CLAP
 
   release:
-    needs: plugins
+    needs: [prepare, plugins]
     runs-on: ubuntu-latest
     timeout-minutes: 30
-    env:
-      TAG: ${{ inputs.tag || github.ref_name }}
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: ${{ inputs.tag || github.ref }}
+          ref: ${{ needs.prepare.outputs.commit }}
           fetch-depth: 0
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
       - uses: actions/download-artifact@v4
         with:
-          name: plugin-linux-x86_64
-          path: build/artifacts/linux-x86_64
-      - uses: actions/download-artifact@v4
-        with:
-          name: plugin-windows-x86_64
-          path: build/artifacts/windows-x86_64
-      - name: Replace the firmware
-        if: ${{ github.event_name == 'workflow_dispatch' && inputs.fwsc_url != '' }}
-        run: curl -fL -o type-p-fm1.fwsc "${{ inputs.fwsc_url }}"
-      - name: Rebuild the release manifests
+          pattern: plugin-*
+          path: build/artifacts
+      - name: Stage the plugin archives
         env:
           PYTHONPATH: framework
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          from umetate import publish
+
+          root = Path("dist")
+          for artifact in sorted(Path("build/artifacts").iterdir()):
+              platform = artifact.name.removeprefix("plugin-")
+              staged = publish._stage_plugins(root, artifact, platform)
+              if not staged:
+                  raise SystemExit(f"release: no VST3 or CLAP under {artifact}")
+              print(f"{platform}: {', '.join(staged)}")
+          PY
+      - name: Add the firmware
+        run: |
+          mkdir -p dist
+          cp type-p-fm1.fwsc dist/type-p-fm1.fwsc
+      - name: Replace the firmware
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.fwsc_url != '' }}
+        run: curl -fL -o dist/type-p-fm1.fwsc "${{ inputs.fwsc_url }}"
+      - name: Build the source archive
+        env:
+          VERSION: ${{ needs.prepare.outputs.version }}
+        run: |
+          tar --exclude=.git --exclude=build --exclude=dist \
+            --exclude='plugins/*/*.zip' --exclude=vendor/deps \
+            --exclude='*.fwsc' --exclude=firmware.wasm \
+            -czf "dist/type-p-fm1-${VERSION}-source.tar.gz" .
+      - name: Write the release manifests
+        env:
+          PYTHONPATH: framework
+          TAG: ${{ needs.prepare.outputs.tag }}
+          VERSION: ${{ needs.prepare.outputs.version }}
+          COMMIT: ${{ needs.prepare.outputs.commit }}
         run: |
           python - <<'PY'
           import os
@@ -105,44 +209,84 @@ jobs:
 
           from umetate import publish
 
-          root = Path(".")
-          for artifact in sorted(Path("build/artifacts").iterdir()):
-              publish._stage_plugins(root, artifact, artifact.name)
-          version = publish._version_of(root)
-          commit = os.environ["GITHUB_SHA"][:7]
-          artifacts = publish._release_artifacts(root, "type-p-fm1")
-          publish._write_release(root, "Type P.fm1", version, commit, artifacts)
+          dist = Path("dist")
+          version = os.environ["VERSION"]
+          tag = os.environ["TAG"]
+          base = (
+              f"https://github.com/{os.environ['GITHUB_REPOSITORY']}"
+              f"/releases/download/{tag}"
+          )
+
+          artifacts = publish._release_artifacts(dist, "type-p-fm1", flat=True)
+          source = dist / f"type-p-fm1-{version}-source.tar.gz"
+          artifacts.append(
+              {
+                  "path": source.name,
+                  "platform": "source",
+                  "format": "source",
+                  "size": source.stat().st_size,
+                  "sha256": publish._sha256(source),
+              }
+          )
+          publish._write_release(
+              dist,
+              "Type P.fm1",
+              version,
+              os.environ["COMMIT"][:7],
+              artifacts,
+              download_base=base,
+          )
+
+          notes = Path("CHANGELOG.md").read_text(encoding="utf-8")
+          marker = f"## {version}"
+          start = notes.find(marker)
+          if start < 0:
+              raise SystemExit(f"release: no {marker} in CHANGELOG.md")
+          body = notes[start + len(marker):]
+          end = body.find("\n## ")
+          if end >= 0:
+              body = body[:end]
+          body = body.strip()
+          body += """
+
+          ## Downloads
+
+          - `type-p-fm1.fwsc` is the device image. Flash it with `umetate flash`.
+          - The VST3 archive unzips into your VST3 folder. On Linux that is
+            `~/.vst3/`, on Windows `C:\\Program Files\\Common Files\\VST3`.
+          - The CLAP archive unzips into your CLAP folder. On Linux that is
+            `~/.clap/`, on Windows `C:\\Program Files\\Common Files\\CLAP`.
+          - `SHA256SUMS` lists every asset. Verify with `sha256sum -c SHA256SUMS`.
+          """
+          (dist / "release-body.md").write_text(body + "\n", encoding="utf-8")
           PY
-      - name: Check the tag and version
-        run: |
-          version=$(sed -n 's/^## \([0-9][0-9.]*\)$/\1/p' docs/release-notes.md | head -1)
-          test "$TAG" = "v$version"
-      - name: Commit the rebuilt archives
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add plugins RELEASES.md SHA256SUMS release.json type-p-fm1.fwsc
-          if git diff --cached --quiet; then
-            echo "no changes to commit"
-          else
-            git commit -m "release ${TAG}: rebuild the plugin archives"
-            git push origin HEAD:main
-          fi
-      - name: Build the source archive
-        run: |
-          tar --exclude=.git --exclude=build --exclude='plugins/*/*.zip' \
-            --exclude=vendor/deps --exclude='*.fwsc' --exclude=firmware.wasm \
-            -czf "type-p-fm1-${TAG}-source.tar.gz" .
-      - uses: softprops/action-gh-release@v2
+      - name: Publish the GitHub Release
+        uses: softprops/action-gh-release@v2
         with:
-          tag_name: ${{ env.TAG }}
-          name: Type P.fm1 ${{ env.TAG }}
-          body_path: CHANGELOG.md
+          tag_name: ${{ needs.prepare.outputs.tag }}
+          name: Type P.fm1 ${{ needs.prepare.outputs.version }}
+          body_path: dist/release-body.md
           fail_on_unmatched_files: true
           files: |
-            type-p-fm1.fwsc
-            plugins/*/*.zip
-            RELEASES.md
-            SHA256SUMS
-            release.json
-            type-p-fm1-*-source.tar.gz
+            dist/type-p-fm1.fwsc
+            dist/plugins/*/*.zip
+            dist/RELEASES.md
+            dist/SHA256SUMS
+            dist/release.json
+            dist/type-p-fm1-*-source.tar.gz
+      - name: Record the manifests on main
+        env:
+          TAG: ${{ needs.prepare.outputs.tag }}
+        run: |
+          git fetch origin main
+          git checkout -B main FETCH_HEAD
+          cp dist/RELEASES.md dist/SHA256SUMS dist/release.json .
+          git add RELEASES.md SHA256SUMS release.json
+          if git diff --cached --quiet; then
+            echo "release: manifests unchanged"
+          else
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git commit -m "release ${TAG}: record the manifests"
+            git push origin HEAD:main
+          fi

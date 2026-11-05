@@ -193,7 +193,7 @@ jobs:
           VERSION: ${{ needs.prepare.outputs.version }}
         run: |
           tar --exclude=.git --exclude=build --exclude=dist \
-            --exclude='plugins/*/*.zip' --exclude=vendor/deps \
+            --exclude='plugins/*/*.zip' \
             --exclude='*.fwsc' --exclude=firmware.wasm \
             -czf "dist/type-p-fm1-${VERSION}-source.tar.gz" .
       - name: Write the release manifests

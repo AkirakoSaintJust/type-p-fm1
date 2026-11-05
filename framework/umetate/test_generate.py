@@ -919,9 +919,12 @@ void __NAME___dsp_note_on(uint32_t note, uint32_t velocity);
 void __NAME___dsp_render(int32_t *out, uint32_t frames);
 int __NAME___dsp_set_param(uint32_t id, int32_t value);
 static int32_t out[4096];
-static double rms(uint32_t n) {
+/* Measure the settled half. The level is block-derived, so the first blocks can
+   still carry the previous render's gate setting; the transient is not what this
+   test is about. */
+static double rms(uint32_t from, uint32_t n) {
     long long e = 0;
-    for (uint32_t i = 0; i < n; i++) e += (long long)out[2 * i] * out[2 * i];
+    for (uint32_t i = from; i < from + n; i++) e += (long long)out[2 * i] * out[2 * i];
     return sqrt((double)e / (double)n);
 }
 static double run(uint32_t note, int32_t on) {
@@ -929,7 +932,7 @@ static double run(uint32_t note, int32_t on) {
     __NAME___dsp_set_param(__KEY_ID__, on);
     __NAME___dsp_note_on(note, 100);
     __NAME___dsp_render(out, 2048);
-    return rms(2048);
+    return rms(1024, 1024);
 }
 int main(void) {
     double lo_on = run(24, 1), hi_on = run(96, 1);
@@ -3004,10 +3007,34 @@ def _up_crossings(samples: list[int]) -> int:
     return sum(1 for a, b in zip(samples, samples[1:], strict=False) if a < 0 <= b)
 
 
+def _fundamental(samples: list[int], rate: int = 44100) -> float:
+    """Autocorrelation pitch over 220..1100 Hz, taking the first strong peak so a
+    subharmonic multiple of the period does not win. A phasor that integrated the
+    modulator would shift the carrier, and the shift shows up here as a pitch far
+    from 440 Hz."""
+    n = len(samples)
+    mean = sum(samples) / n
+    centred = [value - mean for value in samples]
+    low, high = rate // 1100, rate // 220
+    correlation = [0.0] * (high + 2)
+    for lag in range(1, high + 2):
+        total = sum(centred[i] * centred[i + lag] for i in range(n - lag))
+        correlation[lag] = total / (n - lag)
+    top = max(correlation[low:high])
+    for lag in range(low + 1, high):
+        if (
+            correlation[lag] >= top * 0.8
+            and correlation[lag] > correlation[lag - 1]
+            and correlation[lag] >= correlation[lag + 1]
+        ):
+            return rate / lag
+    return rate / max(range(low, high), key=lambda lag: correlation[lag])
+
+
 def _level_taper() -> tuple[bool, str]:
     """The operator level taper: 0 = silence, 99 = maximum, 50 = a meaningful
-    middle. Locks the 0.25 dB/step curve (0 = mute, 50 ≈ −12 dB) against the old
-    0.75 dB/step curve where 50 read as ~silence. A flat instant envelope keeps the
+    middle. Locks the 0.75 dB/step Yamaha total-level curve (0 = mute, 50 ≈ −37 dB)
+    against a flatter curve. A flat instant envelope keeps the
     measurement about the level, not the EG."""
 
     def patch(level: int) -> Patch:
@@ -3054,18 +3081,20 @@ def _level_taper() -> tuple[bool, str]:
 def _pm_semantics() -> tuple[bool, str]:
     """The phasor is a *phase* modulator, not an integrator: a DC-heavy modulator
     must not detune the carrier, and self-feedback must not collapse to a DC fixed
-    point. 440 Hz over 8192 frames at 44.1 kHz is ~81.7 up-crossings."""
+    point. The carrier is A4 (440 Hz), and the pitch comes from the
+    autocorrelation, so a deep index does not confuse the measure the way a raw
+    zero-crossing count does."""
     dc = _render_samples(PM_DC_MOD, 8192)
-    up_dc = _up_crossings(dc)
+    pitch_dc = _fundamental(dc)
     fb = _render_samples(PM_FEEDBACK, 8192)
-    up_fb = _up_crossings(fb)
+    pitch_fb = _fundamental(fb)
     p2p = max(fb) - min(fb)
-    ok = 70 <= up_dc <= 95 and 70 <= up_fb <= 95 and p2p > 12000
+    ok = abs(pitch_dc - 440.0) < 9.0 and 374.0 <= pitch_fb <= 506.0 and p2p > 12000
     if ok:
         return True, ""
     return False, (
-        f"PM contract: DC-mod up-crossings {up_dc} (want ~82 at 440 Hz), "
-        f"feedback up-crossings {up_fb}, p2p {p2p} (want > 12000)"
+        f"PM contract: DC-mod pitch {pitch_dc:.1f} Hz (want 440), "
+        f"feedback pitch {pitch_fb:.1f} Hz, p2p {p2p} (want > 12000)"
     )
 
 

@@ -6,7 +6,8 @@
 standing checks (lint); `--web` builds the standalone wasm + proves host == wasm
 (P4-1); `--python` runs the Python layer (ruff + mypy + the four test modules);
 `--skill` verifies the offline skill bundles (P5); `--links` checks the docs'
-cross-references (P6); `--pyright` runs the strict Python type-check. `--all` is
+cross-references (P6); `--roadmap` keeps the roadmap dashboard under 500 lines;
+`--pyright` runs the strict Python type-check. `--all` is
 the complete gate — the single deterministic "is this increment done" check.
 """
 
@@ -41,9 +42,11 @@ def _web() -> int:
         print(f"deep-check --web: {exc}", file=sys.stderr)
         return 1
     name = patch["name"].replace("-", "_").replace(".", "_")
-    if web.build(patch, web.OUT, name) != 0:
+    # the parity harness is a different page from the user-facing emulator;
+    # keep it out of `build/web` so a gate run cannot clobber a served app
+    if web.build(patch, web.PARITY_OUT, name) != 0:
         return 1
-    ok, msg = web.check_parity(web.OUT, name)
+    ok, msg = web.check_parity(web.PARITY_OUT, name)
     print(f"deep-check --web parity: {'ok' if ok else 'FAIL'} ({msg})")
     return 0 if ok else 1
 
@@ -140,6 +143,7 @@ _PYTHON_STEPS: tuple[tuple[str, list[str]], ...] = (
     ("mypy", ["mypy", "--strict"]),
     ("test_generate", ["python3", "-m", "umetate.test_generate"]),
     ("test_panel", ["python3", "-m", "umetate.test_panel"]),
+    ("test_ratio", ["python3", "-m", "umetate.test_ratio"]),
     ("test_web", ["python3", "-m", "umetate.test_web"]),
     ("test_cli", ["python3", "-m", "umetate.test_cli"]),
     ("test_theme", ["python3", "-m", "umetate.test_theme"]),
@@ -175,6 +179,28 @@ def _links() -> int:
     return 0
 
 
+_ROADMAP = runner.REPO_ROOT / "docs" / "roadmap.md"
+_ROADMAP_LIMIT = 500
+
+
+def _roadmap() -> int:
+    """The roadmap stays a current dashboard, not a growing history."""
+    try:
+        lines = _ROADMAP.read_text(encoding="utf-8").splitlines()
+    except OSError as exc:
+        print(f"deep-check --roadmap: {exc}", file=sys.stderr)
+        return 1
+    if len(lines) > _ROADMAP_LIMIT:
+        print(
+            f"deep-check --roadmap: {len(lines)} lines, limit {_ROADMAP_LIMIT}. "
+            "Compact it with the procedure in AGENTS.md.",
+            file=sys.stderr,
+        )
+        return 1
+    print(f"deep-check --roadmap: ok ({len(lines)} lines)")
+    return 0
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(prog="umetate deep-check", description=__doc__)
     parser.add_argument("--host", action="store_true", help="the host tests")
@@ -185,6 +211,9 @@ def main(argv: list[str] | None = None) -> int:
     )
     parser.add_argument("--skill", action="store_true", help="the offline skills")
     parser.add_argument("--links", action="store_true", help="docs cross-references")
+    parser.add_argument(
+        "--roadmap", action="store_true", help="the 500-line roadmap cap"
+    )
     parser.add_argument("--lib", action="store_true", help="the generated node library")
     parser.add_argument("--pyright", action="store_true", help="the strict type-check")
     parser.add_argument(
@@ -201,6 +230,7 @@ def main(argv: list[str] | None = None) -> int:
             args.python,
             args.skill,
             args.links,
+            args.roadmap,
             args.lib,
             args.pyright,
             args.memory,
@@ -235,6 +265,10 @@ def main(argv: list[str] | None = None) -> int:
     if args.links or args.all:
         rc = _links()
         print(f"deep-check --links: {'ok' if rc == 0 else 'failed'}")
+        failures += 0 if rc == 0 else 1
+    if args.roadmap or args.all:
+        rc = _roadmap()
+        print(f"deep-check --roadmap: {'ok' if rc == 0 else 'failed'}")
         failures += 0 if rc == 0 else 1
     if args.pyright or args.all:
         rc = _pyright()

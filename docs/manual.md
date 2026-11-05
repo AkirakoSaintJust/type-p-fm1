@@ -53,16 +53,21 @@ the pages and the `SEL` button moves between operators 1 to 4, then wraps around
 The pitch of the operator relative to the note, as a multiplier. 1.00 is the base, unmodified pitch.
 2.00 is an octave up, 4.00 two octaves up, and so on. 0.50 is an octave down. Whole-number ratios sound clear, odd ratios sound metallic/reedy, and non-integer ratios sound clangy and inharmonic, which can be industrial noise or struck-type sounds like marimbas, vibraphones, weird glassy pads, and the Taco Bell bell (I've never been to a Taco Bell but being terminally online has taught me Americans find this really funny.)
 
+The knob steps through a fixed ladder: multiples of 0.50, 1.00, 1.41, 1.57 and 1.73, with 0.71, 0.79 and 0.87 near the bottom. 1.41 is √2, 1.57 is π/2 and 1.73 is √3, so the inharmonic stops line up with the OPM detune table and with the ratios used for bells, metal and gongs. The readout shows two decimals, and typing a value snaps to the nearest stop.
+
 ### Level
 
-How loud the operator is inside the voice. 99 is full, 50 is about 12 decibels
-quieter, 0 is silent. For a modulator, the level is the modulation depth, so this
-is where the timbre is shaped as well as the volume. Extreme modulation levels get noisy, so be careful or take advantage of that.
+How loud the operator is inside the voice. The scale is the Yamaha total-level one:
+0.75 decibels per step, so 99 is full, 50 is about 37 decibels quieter, and 0 is
+silent. For a modulator, the level is the modulation depth, so this is where the
+timbre is shaped as well as the volume. A ratio 1 modulator at 75 gives about half
+a cycle of phase deviation, which is the saw-ish region. Extreme modulation levels
+get noisy, so be careful or take advantage of that.
 
 ### Feedback
 
 The operator feeds its own output back into its own phase. Zero is the clean waveform. As you
-raise the feedback, the sound roughens, then turns into noise at the top. All operators have feedback, but traditionally it shows up the most on carriers and on the top operator of a stack. That's because of the way Yamaha chips work: the operators were always computed in the same order and the one with feedback was always the first one.
+raise the feedback, the sound roughens, then turns into noise at the top. The depth follows the operator's level, so a quiet operator feeds back less, which keeps a decaying sound from getting harsher as it fades. All operators have feedback, but traditionally it shows up the most on carriers and on the top operator of a stack. That's because of the way Yamaha chips work: the operators were always computed in the same order and the one with feedback was always the first one.
 
 Tip: a sine operator taking no modulation will kinda become a reverse sawtooth at about 25%-35%.
 Tip 2: modulators become more intense when they have feedback, so it's kinda like cranking the level up beyond its limit.
@@ -83,7 +88,9 @@ otherwise be in unison thickens the sound and adds movement. Detuning modulators
 
 Four rates and three levels. Rate 1 is the attack, rate 2 and rate 3 are the two
 decay stages, rate 4 is the release. Level 1, 2, and 3 set where the envelope
-holds after each stage. Higher rates are faster, lower slower. The envelope is per-operator, so
+holds after each stage. Higher rates are faster, lower slower: a full-scale stage runs
+from 0.7 ms at 99 to about 16 s at 0. Each stage eases into its level rather than running
+in a straight line, so a decay covers most of its drop early and settles gently. The envelope is per-operator, so
 a modulator can fade in and out on its own schedule.
 
 ### Tremolo
@@ -335,8 +342,8 @@ cover. The ranges are the ones the panel shows.
 
 | Parameter | Range | Functionality |
 | --- | --- | --- |
-| RATIO | 0.50 to 16.00 | The operator's pitch as a multiple of the note. 1.00 leaves the operator at the note's base frequency, 2.00 an octave up, 0.50 an octave down. Whole-number ratios sound clear, odd ratios reedy, and non-integer ratios clangy. |
-| LEVEL | 0 to 99 | The operator's output level. 99 is full, 50 is about 12 dB down, and 0 is silent. On a modulator this is the modulation depth. |
+| RATIO | 0.50 to 16.00 | The operator's pitch as a multiple of the note. 1.00 leaves the operator at the note's base frequency, 2.00 an octave up, 0.50 an octave down. The knob stops on multiples of 0.50, √2, π/2 and √3, with 0.71, 0.79 and 0.87 near the bottom. Whole-number ratios sound clear, odd ratios reedy, and non-integer ratios clangy. |
+| LEVEL | 0 to 99 | The operator's output level. 99 is full, 50 is about 37 dB down, and 0 is silent. The scale is the Yamaha total-level one, 0.75 dB per step. On a modulator this is the modulation depth, and 75 is about half a cycle at ratio 1. |
 | FEEDBACK | 0 to 100% | The operator's output fed back into its own phase. 0 is clean, higher values roughen the wave, and the top turns to noise. A sine at 25 to 35% becomes a reverse saw. |
 | WAVE | 0 to 11 | The operator waveform. 0 to 8 are sine-derived and stay clean high up. 9 is pulse, 10 is square, and 11 is saw, all band-limited with mip maps. |
 | OP DETUNE | -50 to +50 cents | A fine offset for one operator. Detuning two operators that would be in unison thickens the sound. Detuning a modulator adds beating. |
@@ -395,7 +402,7 @@ cover. The ranges are the ones the panel shows.
 
 | Parameter | Range | Functionality |
 | --- | --- | --- |
-| PART 1/2 LEVEL | 0 to 99 | The part's output level. 99 is full, 50 is about 12 dB down, and 0 is silent. |
+| PART 1/2 LEVEL | 0 to 99 | The part's output level. 99 is full, 50 is about 37 dB down, and 0 is silent. |
 | PART 1/2 DELAY | 0 to 1000 ms | Delays that part against the other. |
 | P1/P2 LOW/HIGH | note names | The key range for each part. Notes outside it are ignored by that part. |
 | P1/P2 CH | MIDI channel | The channel each part listens to. |

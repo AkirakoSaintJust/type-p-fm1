@@ -12,12 +12,12 @@
    folds the constant to a 32-bit shift/sub/add); a 0-weight term is exactly 0.
    `alg` is a block-constant scalar, so the switch is perfectly predicted.
 
-   The modulator outputs are ×2: the operators carry a −12 dB headroom (`tl`'s
-   `>>2`, for the 4-carrier sum) that also quarter-scales the phase-modulation
-   depth, while the per-operator *feedback* taps the raw oscillator (full scale).
-   ×2 restores the FM to half scale — a modulator at level 99 + feedback 0 now
-   matches what level 99 + 50% feedback used to sound like — without touching the
-   feedback (which is summed *inside* the operator, not here). */
+   The modulator outputs are ×2. The phasor scales `fm` by 2^20, so full
+   scale is eight cycles, and the operators' -12 dB headroom quarter-scales the
+   path (`tl`'s `>>2`, for the 4-carrier sum). ×2 brings a level-99 modulator to
+   four cycles of phase deviation, the OPM's full-scale index at TL 0. The
+   per-operator *feedback* bypasses this router: it taps the level gain and
+   averages two samples, so it reaches half that index, as the OPM does. */
 uint32_t alg = ${in.alg} > 7u ? 7u : ${in.alg};
 int32_t ${out.mod2}, ${out.mod3}, ${out.mod4}, ${out.car};
 switch (alg) {

@@ -40,6 +40,7 @@ typedef struct type_p_fm1_state {
     uint32_t op1_lfo_base[NVOICE];
     uint32_t op1_tl_level_eff[NVOICE];
     int32_t op1_fb_level_eff[NVOICE];
+    int32_t op1_fb_prev[NVOICE];
     int32_t op1_level_ks_k[NVOICE];
     int32_t op1_fb_ks_k[NVOICE];
     int32_t op1_eg_ks_k[NVOICE];
@@ -64,6 +65,7 @@ typedef struct type_p_fm1_state {
     uint32_t op2_lfo_base[NVOICE];
     uint32_t op2_tl_level_eff[NVOICE];
     int32_t op2_fb_level_eff[NVOICE];
+    int32_t op2_fb_prev[NVOICE];
     int32_t op2_level_ks_k[NVOICE];
     int32_t op2_fb_ks_k[NVOICE];
     int32_t op2_eg_ks_k[NVOICE];
@@ -88,6 +90,7 @@ typedef struct type_p_fm1_state {
     uint32_t op3_lfo_base[NVOICE];
     uint32_t op3_tl_level_eff[NVOICE];
     int32_t op3_fb_level_eff[NVOICE];
+    int32_t op3_fb_prev[NVOICE];
     int32_t op3_level_ks_k[NVOICE];
     int32_t op3_fb_ks_k[NVOICE];
     int32_t op3_eg_ks_k[NVOICE];
@@ -112,6 +115,7 @@ typedef struct type_p_fm1_state {
     uint32_t op4_lfo_base[NVOICE];
     uint32_t op4_tl_level_eff[NVOICE];
     int32_t op4_fb_level_eff[NVOICE];
+    int32_t op4_fb_prev[NVOICE];
     int32_t op4_level_ks_k[NVOICE];
     int32_t op4_fb_ks_k[NVOICE];
     int32_t op4_eg_ks_k[NVOICE];
@@ -721,7 +725,7 @@ const dsp_param type_p_fm1_dsp_params[313] = {
     { 280u, "cutoff", 0, 65535, 8000, 1u, 0u, "" },
     { 281u, "res", 0, 65535, 40000, 0u, 0u, "" },
     { 282u, "filter_type", 0, 2, 0, 0u, 0u, "" },
-    { 283u, "filter_on", 0, 1, 1, 0u, 0u, "" },
+    { 283u, "filter_on", 0, 1, 0, 0u, 0u, "" },
     { 284u, "fenv_depth", 0, 65535, 0, 0u, 0u, "" },
     { 285u, "fenv_r1", 0, 99, 80, 0u, 0u, "" },
     { 286u, "fenv_r2", 0, 99, 60, 0u, 0u, "" },
@@ -733,13 +737,13 @@ const dsp_param type_p_fm1_dsp_params[313] = {
     { 292u, "fold", 0, 32767, 0, 0u, 0u, "" },
     { 293u, "fold_threshold", 0, 32767, 0, 0u, 0u, "" },
     { 294u, "fold_folds", 1, 8, 1, 0u, 0u, "" },
-    { 295u, "fold_on", 0, 1, 1, 0u, 0u, "" },
+    { 295u, "fold_on", 0, 1, 0, 0u, 0u, "" },
     { 296u, "fold_type", 0, 0, 0, 0u, 0u, "" },
     { 297u, "wf.amount_depth", -32768, 32767, 0, 0u, 0u, "" },
     { 298u, "cutoff2", 0, 65535, 8000, 1u, 0u, "" },
     { 299u, "res2", 0, 65535, 40000, 0u, 0u, "" },
     { 300u, "filter2_type", 0, 2, 0, 0u, 0u, "" },
-    { 301u, "filter2_on", 0, 1, 1, 0u, 0u, "" },
+    { 301u, "filter2_on", 0, 1, 0, 0u, 0u, "" },
     { 302u, "lp2.fenv_depth", -65536, 65535, 0, 0u, 0u, "" },
     { 303u, "channel.p0", -1, 15, 0, 0u, 0u, "" },
     { 304u, "channel.p1", -1, 15, 1, 0u, 0u, "" },
@@ -1114,6 +1118,7 @@ static UMETATE_DSP_API type_p_fm1_state *type_p_fm1_legacy(void) {
 #define op1_lfo_base (S->op1_lfo_base)
 #define op1_tl_level_eff (S->op1_tl_level_eff)
 #define op1_fb_level_eff (S->op1_fb_level_eff)
+#define op1_fb_prev (S->op1_fb_prev)
 #define op1_level_ks_k (S->op1_level_ks_k)
 #define op1_fb_ks_k (S->op1_fb_ks_k)
 #define op1_eg_ks_k (S->op1_eg_ks_k)
@@ -1138,6 +1143,7 @@ static UMETATE_DSP_API type_p_fm1_state *type_p_fm1_legacy(void) {
 #define op2_lfo_base (S->op2_lfo_base)
 #define op2_tl_level_eff (S->op2_tl_level_eff)
 #define op2_fb_level_eff (S->op2_fb_level_eff)
+#define op2_fb_prev (S->op2_fb_prev)
 #define op2_level_ks_k (S->op2_level_ks_k)
 #define op2_fb_ks_k (S->op2_fb_ks_k)
 #define op2_eg_ks_k (S->op2_eg_ks_k)
@@ -1162,6 +1168,7 @@ static UMETATE_DSP_API type_p_fm1_state *type_p_fm1_legacy(void) {
 #define op3_lfo_base (S->op3_lfo_base)
 #define op3_tl_level_eff (S->op3_tl_level_eff)
 #define op3_fb_level_eff (S->op3_fb_level_eff)
+#define op3_fb_prev (S->op3_fb_prev)
 #define op3_level_ks_k (S->op3_level_ks_k)
 #define op3_fb_ks_k (S->op3_fb_ks_k)
 #define op3_eg_ks_k (S->op3_eg_ks_k)
@@ -1186,6 +1193,7 @@ static UMETATE_DSP_API type_p_fm1_state *type_p_fm1_legacy(void) {
 #define op4_lfo_base (S->op4_lfo_base)
 #define op4_tl_level_eff (S->op4_tl_level_eff)
 #define op4_fb_level_eff (S->op4_fb_level_eff)
+#define op4_fb_prev (S->op4_fb_prev)
 #define op4_level_ks_k (S->op4_level_ks_k)
 #define op4_fb_ks_k (S->op4_fb_ks_k)
 #define op4_eg_ks_k (S->op4_eg_ks_k)
@@ -2070,9 +2078,9 @@ UMETATE_DSP_API void type_p_fm1_render_voices_block(int32_t *bus, int32_t (*taps
         op4_osc_wave[v] = ((op4_osc_waveform[voice_part[v]] > 11u) ? 0u : op4_osc_waveform[voice_part[v]]);
         op4_osc_base[v] = ((uint32_t)fm1_wave_base[op4_osc_wave[v]] << 10);
         op4_osc_bl[v] = ((op4_osc_wave[v] >= 9u) ? 1u : 0u);
-        op4_fb_level_eff[v] = fm1_key_apply(op4_fb_level[voice_part[v]], fm1_key_add(op4_fb_ks_k_x[v], op4_fb_vs_k_x[v]), 0, 32767);
         op4_lfo_base[v] = ((uint32_t)fm1_wave_base[((op4_lfo_wave[voice_part[v]] > 11u) ? 0u : op4_lfo_wave[voice_part[v]])] << 10);
         op4_tl_level_eff[v] = (uint32_t)fm1_key_apply(op4_tl_level[voice_part[v]], fm1_key_add(op4_level_ks_k_x[v], op4_level_vs_k_x[v]), 0, 99);
+        op4_fb_level_eff[v] = fm1_key_apply(op4_fb_level[voice_part[v]], fm1_key_add(op4_fb_ks_k_x[v], op4_fb_vs_k_x[v]), 0, 32767);
         op3_eg_vs_k[v] = vel_on_on_x ? fm1_vel_scale((int32_t)voice_velocity[v], op3_eg_vs_amount[voice_part[v]]) : 0;
         op3_fb_vs_k[v] = 1 ? fm1_vel_scale((int32_t)voice_velocity[v], op3_fb_vs_amount[voice_part[v]]) : 0;
         op3_level_vs_k[v] = 1 ? fm1_vel_scale((int32_t)voice_velocity[v], op3_level_vs_amount[voice_part[v]]) : 0;
@@ -2088,9 +2096,9 @@ UMETATE_DSP_API void type_p_fm1_render_voices_block(int32_t *bus, int32_t (*taps
         op3_osc_wave[v] = ((op3_osc_waveform[voice_part[v]] > 11u) ? 0u : op3_osc_waveform[voice_part[v]]);
         op3_osc_base[v] = ((uint32_t)fm1_wave_base[op3_osc_wave[v]] << 10);
         op3_osc_bl[v] = ((op3_osc_wave[v] >= 9u) ? 1u : 0u);
-        op3_fb_level_eff[v] = fm1_key_apply(op3_fb_level[voice_part[v]], fm1_key_add(op3_fb_ks_k_x[v], op3_fb_vs_k_x[v]), 0, 32767);
         op3_lfo_base[v] = ((uint32_t)fm1_wave_base[((op3_lfo_wave[voice_part[v]] > 11u) ? 0u : op3_lfo_wave[voice_part[v]])] << 10);
         op3_tl_level_eff[v] = (uint32_t)fm1_key_apply(op3_tl_level[voice_part[v]], fm1_key_add(op3_level_ks_k_x[v], op3_level_vs_k_x[v]), 0, 99);
+        op3_fb_level_eff[v] = fm1_key_apply(op3_fb_level[voice_part[v]], fm1_key_add(op3_fb_ks_k_x[v], op3_fb_vs_k_x[v]), 0, 32767);
         op2_eg_vs_k[v] = vel_on_on_x ? fm1_vel_scale((int32_t)voice_velocity[v], op2_eg_vs_amount[voice_part[v]]) : 0;
         op2_fb_vs_k[v] = 1 ? fm1_vel_scale((int32_t)voice_velocity[v], op2_fb_vs_amount[voice_part[v]]) : 0;
         op2_level_vs_k[v] = 1 ? fm1_vel_scale((int32_t)voice_velocity[v], op2_level_vs_amount[voice_part[v]]) : 0;
@@ -2106,9 +2114,9 @@ UMETATE_DSP_API void type_p_fm1_render_voices_block(int32_t *bus, int32_t (*taps
         op2_osc_wave[v] = ((op2_osc_waveform[voice_part[v]] > 11u) ? 0u : op2_osc_waveform[voice_part[v]]);
         op2_osc_base[v] = ((uint32_t)fm1_wave_base[op2_osc_wave[v]] << 10);
         op2_osc_bl[v] = ((op2_osc_wave[v] >= 9u) ? 1u : 0u);
-        op2_fb_level_eff[v] = fm1_key_apply(op2_fb_level[voice_part[v]], fm1_key_add(op2_fb_ks_k_x[v], op2_fb_vs_k_x[v]), 0, 32767);
         op2_lfo_base[v] = ((uint32_t)fm1_wave_base[((op2_lfo_wave[voice_part[v]] > 11u) ? 0u : op2_lfo_wave[voice_part[v]])] << 10);
         op2_tl_level_eff[v] = (uint32_t)fm1_key_apply(op2_tl_level[voice_part[v]], fm1_key_add(op2_level_ks_k_x[v], op2_level_vs_k_x[v]), 0, 99);
+        op2_fb_level_eff[v] = fm1_key_apply(op2_fb_level[voice_part[v]], fm1_key_add(op2_fb_ks_k_x[v], op2_fb_vs_k_x[v]), 0, 32767);
         op1_eg_vs_k[v] = vel_on_on_x ? fm1_vel_scale((int32_t)voice_velocity[v], op1_eg_vs_amount[voice_part[v]]) : 0;
         op1_fb_vs_k[v] = 1 ? fm1_vel_scale((int32_t)voice_velocity[v], op1_fb_vs_amount[voice_part[v]]) : 0;
         op1_level_vs_k[v] = 1 ? fm1_vel_scale((int32_t)voice_velocity[v], op1_level_vs_amount[voice_part[v]]) : 0;
@@ -2124,9 +2132,9 @@ UMETATE_DSP_API void type_p_fm1_render_voices_block(int32_t *bus, int32_t (*taps
         op1_osc_wave[v] = ((op1_osc_waveform[voice_part[v]] > 11u) ? 0u : op1_osc_waveform[voice_part[v]]);
         op1_osc_base[v] = ((uint32_t)fm1_wave_base[op1_osc_wave[v]] << 10);
         op1_osc_bl[v] = ((op1_osc_wave[v] >= 9u) ? 1u : 0u);
-        op1_fb_level_eff[v] = fm1_key_apply(op1_fb_level[voice_part[v]], fm1_key_add(op1_fb_ks_k_x[v], op1_fb_vs_k_x[v]), 0, 32767);
         op1_lfo_base[v] = ((uint32_t)fm1_wave_base[((op1_lfo_wave[voice_part[v]] > 11u) ? 0u : op1_lfo_wave[voice_part[v]])] << 10);
         op1_tl_level_eff[v] = (uint32_t)fm1_key_apply(op1_tl_level[voice_part[v]], fm1_key_add(op1_level_ks_k_x[v], op1_level_vs_k_x[v]), 0, 99);
+        op1_fb_level_eff[v] = fm1_key_apply(op1_fb_level[voice_part[v]], fm1_key_add(op1_fb_ks_k_x[v], op1_fb_vs_k_x[v]), 0, 32767);
     }
     for (uint32_t i = 0; i < 32u; i++) bus[i] = 0;
     for (uint32_t v = v0; v < v1; v++) {
@@ -2160,12 +2168,12 @@ UMETATE_DSP_API void type_p_fm1_render_voices_block(int32_t *bus, int32_t (*taps
                table loads). Bit-exact: a 1-weight is the exact `32767` scale (the compiler
                folds the constant to a 32-bit shift/sub/add); a 0-weight term is exactly 0.
                `alg` is a block-constant scalar, so the switch is perfectly predicted.
-               The modulator outputs are ×2: the operators carry a −12 dB headroom (`tl`'s
-               `>>2`, for the 4-carrier sum) that also quarter-scales the phase-modulation
-               depth, while the per-operator *feedback* taps the raw oscillator (full scale).
-               ×2 restores the FM to half scale — a modulator at level 99 + feedback 0 now
-               matches what level 99 + 50% feedback used to sound like — without touching the
-               feedback (which is summed *inside* the operator, not here). */
+               The modulator outputs are ×2. The phasor scales `fm` by 2^20, so full
+               scale is eight cycles, and the operators' -12 dB headroom quarter-scales the
+               path (`tl`'s `>>2`, for the 4-carrier sum). ×2 brings a level-99 modulator to
+               four cycles of phase deviation, the OPM's full-scale index at TL 0. The
+               per-operator *feedback* bypasses this router: it taps the level gain and
+               averages two samples, so it reaches half that index, as the OPM does. */
             uint32_t alg = algo_alg_x[v] > 7u ? 7u : algo_alg_x[v];
             int32_t route_mod2_x, route_mod3_x, route_mod4_x, route_car_x;
             switch (alg) {
@@ -2229,20 +2237,21 @@ UMETATE_DSP_API void type_p_fm1_render_voices_block(int32_t *bus, int32_t (*taps
                increment is block-constant (`inc` is note-derived, `pitch` is control-rate), so
                it is recomputed once per block into `op4_ph_step[v]` (the node's `block_derived`)
                — the per-sample body is just the add.
-               `fm` (audio, Q15) is a *phase offset* scaled by 2^16 (full-scale = ±π, the FM
-               index) and `mod` (control) is a small additive offset — both apply to the readout
+               `fm` (audio, Q15) is a *phase offset* scaled by 2^20, so full scale is eight
+               cycles (16π, the FM index); the router and the feedback tap feed it less than
+               that. `mod` (control) is a small additive offset — both apply to the readout
                phase only. The accumulator advances by `step` alone: accumulating `fm` would
                integrate the modulator into the frequency (FM), which detunes the carrier with
                any modulator DC and lets a feedback loop settle on a DC fixed point. This is the
                Yamaha model: `out = wave(acc + modulator)`, `acc += step`.
-               32-bit arithmetic throughout: `(uint32_t)fm << 16` is the exact two's-complement
-               `fm * 65536` (Q15 → Q31, fits int32), and the phase sums are plain mod-2³² uint32
-               additions — the old int64 form truncates to the same low 32 bits, so this is
-               bit-exact without the 64-bit ops.
+               32-bit arithmetic throughout: `(uint32_t)fm << 20` is `fm * 2^20` modulo 2^32,
+               and the phase sums are plain mod-2³² uint32 additions. The wrap *is* the phase
+               wrap, so losing the high bits is the intended behaviour, and the per-sample body
+               stays one add per input.
                `mip` (the band-limited table level) is block-constant (block_derived), so it is
                copied to its output here — the per-sample body stays the accumulator add, the
                FM offset add, and this copy. */
-            uint32_t op4_ph_phase_x = op4_ph_phase[v] + ((uint32_t)op4_sum_audio_x << 16) + (uint32_t)0;
+            uint32_t op4_ph_phase_x = op4_ph_phase[v] + ((uint32_t)op4_sum_audio_x << 20) + (uint32_t)0;
             op4_ph_phase[v] += op4_ph_step[v];
             uint32_t op4_ph_mip_x = op4_ph_mip[v];
             /* Wave reader: one load from the precomputed 12-wave table (`fm1_wave`). The
@@ -2253,14 +2262,6 @@ UMETATE_DSP_API void type_p_fm1_render_voices_block(int32_t *bus, int32_t (*taps
                table with fewer harmonics and stop aliasing; waves 0-8 ignore it. */
             int32_t op4_osc_audio_x = fm1_wave[op4_osc_base[v]
                 + ((op4_osc_bl[v] ? op4_ph_mip_x : 0u) << 10) + (op4_ph_phase_x >> 22)];
-            /* gain cell: audio × cv × level_eff (Q15). The level is pushed toward 0/32767 by
-               a key-follow factor `k` (Q15) — the effective level is block-derived. When
-               `level_eff` is 0 (e.g. the per-op self-feedback with `feedback` = 0) the two
-               multiplies are skipped — bit-exact, since `fm1_q15_mul(x, 0)` = 0, and the
-               block-constant condition is perfectly predicted. */
-            int32_t op4_fb_audio_x = op4_fb_level_eff[v]
-                ? fm1_q15_mul(fm1_q15_mul(op4_osc_audio_x, 32768), op4_fb_level_eff[v])
-                : 0;
             /* Yamaha total-level gain: audio × cv × gain(level_eff). `level` is 0..99, pushed
                toward 0/99 by a key-follow factor `k` (Q15) — the effective level is
                block-derived. Shifted >> 2 for the −12 dB single-operator headroom. When
@@ -2272,6 +2273,21 @@ UMETATE_DSP_API void type_p_fm1_render_voices_block(int32_t *bus, int32_t (*taps
                 : 0;
             /* Output gate: 0 when `mute` is set, else the input passes through. */
             int32_t op4_mute_audio_x = op4_mute_mute[voice_part[v]] ? 0 : op4_tl_audio_x;
+            /* Self-feedback tap: `(x[n] + x[n-1]) / 2 * level`, gated on `level_eff` so a
+               patch with no feedback pays nothing. The two-sample average is the OPM's
+               `(o + Inp_last) >> Fl`. Its zero at Nyquist is the point: a one-sample
+               feedback loop with no damping can ring at the top of the band. The half and
+               the Q15 scale are folded into one shift, `(x + prev) * level >> 16`, which is
+               a 32-bit multiply: `audio` is Q15, so the sum is at most 65536 and the product
+               stays under INT32_MAX. The shift truncates instead of rounding, which loses at
+               most one LSB on the feedback phase. While the tap is gated the state holds its
+               last value, so the first samples after turning feedback up fade in from the
+               previous setting. */
+            int32_t op4_fb_audio_x = 0;
+            if (op4_fb_level_eff[v]) {
+                op4_fb_audio_x = ((op4_tl_audio_x + op4_fb_prev[v]) * op4_fb_level_eff[v]) >> 16;
+                op4_fb_prev[v] = op4_tl_audio_x;
+            }
             /* pure gain cell: Q15 multiply (audio * cv). */
             int32_t op3_fmvel_audio_x = fm1_q15_mul(route_mod3_x, op3_velfm_cv_x[v]);
             /* summer: add the two inputs. */
@@ -2283,20 +2299,21 @@ UMETATE_DSP_API void type_p_fm1_render_voices_block(int32_t *bus, int32_t (*taps
                increment is block-constant (`inc` is note-derived, `pitch` is control-rate), so
                it is recomputed once per block into `op3_ph_step[v]` (the node's `block_derived`)
                — the per-sample body is just the add.
-               `fm` (audio, Q15) is a *phase offset* scaled by 2^16 (full-scale = ±π, the FM
-               index) and `mod` (control) is a small additive offset — both apply to the readout
+               `fm` (audio, Q15) is a *phase offset* scaled by 2^20, so full scale is eight
+               cycles (16π, the FM index); the router and the feedback tap feed it less than
+               that. `mod` (control) is a small additive offset — both apply to the readout
                phase only. The accumulator advances by `step` alone: accumulating `fm` would
                integrate the modulator into the frequency (FM), which detunes the carrier with
                any modulator DC and lets a feedback loop settle on a DC fixed point. This is the
                Yamaha model: `out = wave(acc + modulator)`, `acc += step`.
-               32-bit arithmetic throughout: `(uint32_t)fm << 16` is the exact two's-complement
-               `fm * 65536` (Q15 → Q31, fits int32), and the phase sums are plain mod-2³² uint32
-               additions — the old int64 form truncates to the same low 32 bits, so this is
-               bit-exact without the 64-bit ops.
+               32-bit arithmetic throughout: `(uint32_t)fm << 20` is `fm * 2^20` modulo 2^32,
+               and the phase sums are plain mod-2³² uint32 additions. The wrap *is* the phase
+               wrap, so losing the high bits is the intended behaviour, and the per-sample body
+               stays one add per input.
                `mip` (the band-limited table level) is block-constant (block_derived), so it is
                copied to its output here — the per-sample body stays the accumulator add, the
                FM offset add, and this copy. */
-            uint32_t op3_ph_phase_x = op3_ph_phase[v] + ((uint32_t)op3_sum_audio_x << 16) + (uint32_t)0;
+            uint32_t op3_ph_phase_x = op3_ph_phase[v] + ((uint32_t)op3_sum_audio_x << 20) + (uint32_t)0;
             op3_ph_phase[v] += op3_ph_step[v];
             uint32_t op3_ph_mip_x = op3_ph_mip[v];
             /* Wave reader: one load from the precomputed 12-wave table (`fm1_wave`). The
@@ -2307,14 +2324,6 @@ UMETATE_DSP_API void type_p_fm1_render_voices_block(int32_t *bus, int32_t (*taps
                table with fewer harmonics and stop aliasing; waves 0-8 ignore it. */
             int32_t op3_osc_audio_x = fm1_wave[op3_osc_base[v]
                 + ((op3_osc_bl[v] ? op3_ph_mip_x : 0u) << 10) + (op3_ph_phase_x >> 22)];
-            /* gain cell: audio × cv × level_eff (Q15). The level is pushed toward 0/32767 by
-               a key-follow factor `k` (Q15) — the effective level is block-derived. When
-               `level_eff` is 0 (e.g. the per-op self-feedback with `feedback` = 0) the two
-               multiplies are skipped — bit-exact, since `fm1_q15_mul(x, 0)` = 0, and the
-               block-constant condition is perfectly predicted. */
-            int32_t op3_fb_audio_x = op3_fb_level_eff[v]
-                ? fm1_q15_mul(fm1_q15_mul(op3_osc_audio_x, 32768), op3_fb_level_eff[v])
-                : 0;
             /* Yamaha total-level gain: audio × cv × gain(level_eff). `level` is 0..99, pushed
                toward 0/99 by a key-follow factor `k` (Q15) — the effective level is
                block-derived. Shifted >> 2 for the −12 dB single-operator headroom. When
@@ -2326,6 +2335,21 @@ UMETATE_DSP_API void type_p_fm1_render_voices_block(int32_t *bus, int32_t (*taps
                 : 0;
             /* Output gate: 0 when `mute` is set, else the input passes through. */
             int32_t op3_mute_audio_x = op3_mute_mute[voice_part[v]] ? 0 : op3_tl_audio_x;
+            /* Self-feedback tap: `(x[n] + x[n-1]) / 2 * level`, gated on `level_eff` so a
+               patch with no feedback pays nothing. The two-sample average is the OPM's
+               `(o + Inp_last) >> Fl`. Its zero at Nyquist is the point: a one-sample
+               feedback loop with no damping can ring at the top of the band. The half and
+               the Q15 scale are folded into one shift, `(x + prev) * level >> 16`, which is
+               a 32-bit multiply: `audio` is Q15, so the sum is at most 65536 and the product
+               stays under INT32_MAX. The shift truncates instead of rounding, which loses at
+               most one LSB on the feedback phase. While the tap is gated the state holds its
+               last value, so the first samples after turning feedback up fade in from the
+               previous setting. */
+            int32_t op3_fb_audio_x = 0;
+            if (op3_fb_level_eff[v]) {
+                op3_fb_audio_x = ((op3_tl_audio_x + op3_fb_prev[v]) * op3_fb_level_eff[v]) >> 16;
+                op3_fb_prev[v] = op3_tl_audio_x;
+            }
             /* pure gain cell: Q15 multiply (audio * cv). */
             int32_t op2_fmvel_audio_x = fm1_q15_mul(route_mod2_x, op2_velfm_cv_x[v]);
             /* summer: add the two inputs. */
@@ -2337,20 +2361,21 @@ UMETATE_DSP_API void type_p_fm1_render_voices_block(int32_t *bus, int32_t (*taps
                increment is block-constant (`inc` is note-derived, `pitch` is control-rate), so
                it is recomputed once per block into `op2_ph_step[v]` (the node's `block_derived`)
                — the per-sample body is just the add.
-               `fm` (audio, Q15) is a *phase offset* scaled by 2^16 (full-scale = ±π, the FM
-               index) and `mod` (control) is a small additive offset — both apply to the readout
+               `fm` (audio, Q15) is a *phase offset* scaled by 2^20, so full scale is eight
+               cycles (16π, the FM index); the router and the feedback tap feed it less than
+               that. `mod` (control) is a small additive offset — both apply to the readout
                phase only. The accumulator advances by `step` alone: accumulating `fm` would
                integrate the modulator into the frequency (FM), which detunes the carrier with
                any modulator DC and lets a feedback loop settle on a DC fixed point. This is the
                Yamaha model: `out = wave(acc + modulator)`, `acc += step`.
-               32-bit arithmetic throughout: `(uint32_t)fm << 16` is the exact two's-complement
-               `fm * 65536` (Q15 → Q31, fits int32), and the phase sums are plain mod-2³² uint32
-               additions — the old int64 form truncates to the same low 32 bits, so this is
-               bit-exact without the 64-bit ops.
+               32-bit arithmetic throughout: `(uint32_t)fm << 20` is `fm * 2^20` modulo 2^32,
+               and the phase sums are plain mod-2³² uint32 additions. The wrap *is* the phase
+               wrap, so losing the high bits is the intended behaviour, and the per-sample body
+               stays one add per input.
                `mip` (the band-limited table level) is block-constant (block_derived), so it is
                copied to its output here — the per-sample body stays the accumulator add, the
                FM offset add, and this copy. */
-            uint32_t op2_ph_phase_x = op2_ph_phase[v] + ((uint32_t)op2_sum_audio_x << 16) + (uint32_t)0;
+            uint32_t op2_ph_phase_x = op2_ph_phase[v] + ((uint32_t)op2_sum_audio_x << 20) + (uint32_t)0;
             op2_ph_phase[v] += op2_ph_step[v];
             uint32_t op2_ph_mip_x = op2_ph_mip[v];
             /* Wave reader: one load from the precomputed 12-wave table (`fm1_wave`). The
@@ -2361,14 +2386,6 @@ UMETATE_DSP_API void type_p_fm1_render_voices_block(int32_t *bus, int32_t (*taps
                table with fewer harmonics and stop aliasing; waves 0-8 ignore it. */
             int32_t op2_osc_audio_x = fm1_wave[op2_osc_base[v]
                 + ((op2_osc_bl[v] ? op2_ph_mip_x : 0u) << 10) + (op2_ph_phase_x >> 22)];
-            /* gain cell: audio × cv × level_eff (Q15). The level is pushed toward 0/32767 by
-               a key-follow factor `k` (Q15) — the effective level is block-derived. When
-               `level_eff` is 0 (e.g. the per-op self-feedback with `feedback` = 0) the two
-               multiplies are skipped — bit-exact, since `fm1_q15_mul(x, 0)` = 0, and the
-               block-constant condition is perfectly predicted. */
-            int32_t op2_fb_audio_x = op2_fb_level_eff[v]
-                ? fm1_q15_mul(fm1_q15_mul(op2_osc_audio_x, 32768), op2_fb_level_eff[v])
-                : 0;
             /* Yamaha total-level gain: audio × cv × gain(level_eff). `level` is 0..99, pushed
                toward 0/99 by a key-follow factor `k` (Q15) — the effective level is
                block-derived. Shifted >> 2 for the −12 dB single-operator headroom. When
@@ -2380,6 +2397,21 @@ UMETATE_DSP_API void type_p_fm1_render_voices_block(int32_t *bus, int32_t (*taps
                 : 0;
             /* Output gate: 0 when `mute` is set, else the input passes through. */
             int32_t op2_mute_audio_x = op2_mute_mute[voice_part[v]] ? 0 : op2_tl_audio_x;
+            /* Self-feedback tap: `(x[n] + x[n-1]) / 2 * level`, gated on `level_eff` so a
+               patch with no feedback pays nothing. The two-sample average is the OPM's
+               `(o + Inp_last) >> Fl`. Its zero at Nyquist is the point: a one-sample
+               feedback loop with no damping can ring at the top of the band. The half and
+               the Q15 scale are folded into one shift, `(x + prev) * level >> 16`, which is
+               a 32-bit multiply: `audio` is Q15, so the sum is at most 65536 and the product
+               stays under INT32_MAX. The shift truncates instead of rounding, which loses at
+               most one LSB on the feedback phase. While the tap is gated the state holds its
+               last value, so the first samples after turning feedback up fade in from the
+               previous setting. */
+            int32_t op2_fb_audio_x = 0;
+            if (op2_fb_level_eff[v]) {
+                op2_fb_audio_x = ((op2_tl_audio_x + op2_fb_prev[v]) * op2_fb_level_eff[v]) >> 16;
+                op2_fb_prev[v] = op2_tl_audio_x;
+            }
             /* pure gain cell: Q15 multiply (audio * cv). */
             int32_t op1_fmvel_audio_x = fm1_q15_mul(0, op1_velfm_cv_x[v]);
             /* summer: add the two inputs. */
@@ -2391,20 +2423,21 @@ UMETATE_DSP_API void type_p_fm1_render_voices_block(int32_t *bus, int32_t (*taps
                increment is block-constant (`inc` is note-derived, `pitch` is control-rate), so
                it is recomputed once per block into `op1_ph_step[v]` (the node's `block_derived`)
                — the per-sample body is just the add.
-               `fm` (audio, Q15) is a *phase offset* scaled by 2^16 (full-scale = ±π, the FM
-               index) and `mod` (control) is a small additive offset — both apply to the readout
+               `fm` (audio, Q15) is a *phase offset* scaled by 2^20, so full scale is eight
+               cycles (16π, the FM index); the router and the feedback tap feed it less than
+               that. `mod` (control) is a small additive offset — both apply to the readout
                phase only. The accumulator advances by `step` alone: accumulating `fm` would
                integrate the modulator into the frequency (FM), which detunes the carrier with
                any modulator DC and lets a feedback loop settle on a DC fixed point. This is the
                Yamaha model: `out = wave(acc + modulator)`, `acc += step`.
-               32-bit arithmetic throughout: `(uint32_t)fm << 16` is the exact two's-complement
-               `fm * 65536` (Q15 → Q31, fits int32), and the phase sums are plain mod-2³² uint32
-               additions — the old int64 form truncates to the same low 32 bits, so this is
-               bit-exact without the 64-bit ops.
+               32-bit arithmetic throughout: `(uint32_t)fm << 20` is `fm * 2^20` modulo 2^32,
+               and the phase sums are plain mod-2³² uint32 additions. The wrap *is* the phase
+               wrap, so losing the high bits is the intended behaviour, and the per-sample body
+               stays one add per input.
                `mip` (the band-limited table level) is block-constant (block_derived), so it is
                copied to its output here — the per-sample body stays the accumulator add, the
                FM offset add, and this copy. */
-            uint32_t op1_ph_phase_x = op1_ph_phase[v] + ((uint32_t)op1_sum_audio_x << 16) + (uint32_t)0;
+            uint32_t op1_ph_phase_x = op1_ph_phase[v] + ((uint32_t)op1_sum_audio_x << 20) + (uint32_t)0;
             op1_ph_phase[v] += op1_ph_step[v];
             uint32_t op1_ph_mip_x = op1_ph_mip[v];
             /* Wave reader: one load from the precomputed 12-wave table (`fm1_wave`). The
@@ -2415,14 +2448,6 @@ UMETATE_DSP_API void type_p_fm1_render_voices_block(int32_t *bus, int32_t (*taps
                table with fewer harmonics and stop aliasing; waves 0-8 ignore it. */
             int32_t op1_osc_audio_x = fm1_wave[op1_osc_base[v]
                 + ((op1_osc_bl[v] ? op1_ph_mip_x : 0u) << 10) + (op1_ph_phase_x >> 22)];
-            /* gain cell: audio × cv × level_eff (Q15). The level is pushed toward 0/32767 by
-               a key-follow factor `k` (Q15) — the effective level is block-derived. When
-               `level_eff` is 0 (e.g. the per-op self-feedback with `feedback` = 0) the two
-               multiplies are skipped — bit-exact, since `fm1_q15_mul(x, 0)` = 0, and the
-               block-constant condition is perfectly predicted. */
-            int32_t op1_fb_audio_x = op1_fb_level_eff[v]
-                ? fm1_q15_mul(fm1_q15_mul(op1_osc_audio_x, 32768), op1_fb_level_eff[v])
-                : 0;
             /* Yamaha total-level gain: audio × cv × gain(level_eff). `level` is 0..99, pushed
                toward 0/99 by a key-follow factor `k` (Q15) — the effective level is
                block-derived. Shifted >> 2 for the −12 dB single-operator headroom. When
@@ -2434,6 +2459,21 @@ UMETATE_DSP_API void type_p_fm1_render_voices_block(int32_t *bus, int32_t (*taps
                 : 0;
             /* Output gate: 0 when `mute` is set, else the input passes through. */
             int32_t op1_mute_audio_x = op1_mute_mute[voice_part[v]] ? 0 : op1_tl_audio_x;
+            /* Self-feedback tap: `(x[n] + x[n-1]) / 2 * level`, gated on `level_eff` so a
+               patch with no feedback pays nothing. The two-sample average is the OPM's
+               `(o + Inp_last) >> Fl`. Its zero at Nyquist is the point: a one-sample
+               feedback loop with no damping can ring at the top of the band. The half and
+               the Q15 scale are folded into one shift, `(x + prev) * level >> 16`, which is
+               a 32-bit multiply: `audio` is Q15, so the sum is at most 65536 and the product
+               stays under INT32_MAX. The shift truncates instead of rounding, which loses at
+               most one LSB on the feedback phase. While the tap is gated the state holds its
+               last value, so the first samples after turning feedback up fade in from the
+               previous setting. */
+            int32_t op1_fb_audio_x = 0;
+            if (op1_fb_level_eff[v]) {
+                op1_fb_audio_x = ((op1_tl_audio_x + op1_fb_prev[v]) * op1_fb_level_eff[v]) >> 16;
+                op1_fb_prev[v] = op1_tl_audio_x;
+            }
             bus[f - b] = fm1_sat_add32(bus[f - b], fm1_q15_mul(route_car_x, fm1_level_gain[part_level[voice_part[v]]]));
             if (f < UMETATE_DSP_BLOCK_FRAMES) {
                 uint32_t _tp = voice_part[v];

@@ -34,7 +34,9 @@ pins above.
 
 ## Vendored sources
 
-The fetched sources are copied into `vendor/deps/`. Build against them with:
+The fetched sources are copied into `vendor/deps/`. The release source archive
+carries that tree, so the AGPL corresponding source travels with the binary.
+Build against the vendored copy with:
 
 ```sh
 cmake -S framework/plugin -B build/plugin -DP1_BUILD_JUCE=ON -DP1_BUILD_CLAP=ON \

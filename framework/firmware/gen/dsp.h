@@ -28,6 +28,7 @@ typedef struct type_p_fm1_state {
     uint32_t op1_lfo_base[NVOICE];
     uint32_t op1_tl_level_eff[NVOICE];
     int32_t op1_fb_level_eff[NVOICE];
+    int32_t op1_fb_prev[NVOICE];
     int32_t op1_level_ks_k[NVOICE];
     int32_t op1_fb_ks_k[NVOICE];
     int32_t op1_eg_ks_k[NVOICE];
@@ -52,6 +53,7 @@ typedef struct type_p_fm1_state {
     uint32_t op2_lfo_base[NVOICE];
     uint32_t op2_tl_level_eff[NVOICE];
     int32_t op2_fb_level_eff[NVOICE];
+    int32_t op2_fb_prev[NVOICE];
     int32_t op2_level_ks_k[NVOICE];
     int32_t op2_fb_ks_k[NVOICE];
     int32_t op2_eg_ks_k[NVOICE];
@@ -76,6 +78,7 @@ typedef struct type_p_fm1_state {
     uint32_t op3_lfo_base[NVOICE];
     uint32_t op3_tl_level_eff[NVOICE];
     int32_t op3_fb_level_eff[NVOICE];
+    int32_t op3_fb_prev[NVOICE];
     int32_t op3_level_ks_k[NVOICE];
     int32_t op3_fb_ks_k[NVOICE];
     int32_t op3_eg_ks_k[NVOICE];
@@ -100,6 +103,7 @@ typedef struct type_p_fm1_state {
     uint32_t op4_lfo_base[NVOICE];
     uint32_t op4_tl_level_eff[NVOICE];
     int32_t op4_fb_level_eff[NVOICE];
+    int32_t op4_fb_prev[NVOICE];
     int32_t op4_level_ks_k[NVOICE];
     int32_t op4_fb_ks_k[NVOICE];
     int32_t op4_eg_ks_k[NVOICE];

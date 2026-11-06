@@ -1,8 +1,9 @@
 # SPDX-License-Identifier: GPL-3.0-only
 # Copyright (C) 2026 P1Onken (umetate)
-"""The evidence/status vocabulary (docs/platform-facts.md §5.5), one place.
+"""The evidence and status vocabulary (docs/platform-facts.md §5.5), in one
+place.
 
-Also `umetate evidence`: validate an evidence matrix (per-layer status, §12.8).
+`umetate evidence` validates an evidence matrix with a per-layer status (§12.8).
 """
 
 from __future__ import annotations
@@ -18,7 +19,7 @@ from ._schema import as_evidence
 
 
 class Status(StrEnum):
-    """A claim's status; a lower layer never proves a higher one."""
+    """The status of a claimed feature. A lower layer never proves a higher one."""
 
     PASS = "pass"
     FAIL = "fail"

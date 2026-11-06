@@ -1,8 +1,8 @@
 # Synth brief
 
-> Copy this file into your project and replace the prompts. Keep one brief as the
-> source of truth. Delete the options you reject rather than leaving them as
-> maybe-decisions.
+> Copy this file into your project and replace the prompts. I'd keep one brief as
+> the only reference, and delete the options you reject rather than leaving them
+> as maybe-decisions.
 
 ## 1. Instrument and player
 
@@ -40,8 +40,9 @@
 
 ### 2.2 Parameter manifest
 
-> This is the source of the generated `params.json`, so list **every** parameter.
-> The GUI and MIDI map can only expose what is listed here or marked internal.
+> This is the only reference for the generated `params.json`, so list **every**
+> parameter, because the GUI and MIDI map can only expose what is listed here or
+> marked internal.
 
 | Param (name) | Target `<instance>.<param>` | Min | Max | Default | Curve | Unit | Rate | Modulatable |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -84,7 +85,7 @@
 - **What you want to hear or compare locally:**
 - **Which parameters and MIDI controls the page needs:**
 - **Supported browsers and offline expectation:**
-- **What the browser must not be used to claim:**
+- **What the browser must not be used to prove:**
 
 ## 7. Acceptance and evidence
 

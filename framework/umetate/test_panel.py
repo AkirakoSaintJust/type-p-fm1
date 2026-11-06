@@ -2,10 +2,11 @@
 # Copyright (C) 2026 P1Onken (umetate)
 """Host tests for the panel generator (docs/roadmap.md §12.6 verification).
 
-- the demo panel generates deterministically (the checked-in firmware/src/panel.h is
-  exactly what panel.json produces);
-- the generated header compiles against the UI runtime types;
-- an unknown source/action is rejected with a GenError.
+The demo panel generates deterministically, so the checked-in
+`firmware/src/panel.h` is exactly what `panel.json` produces, and the generated
+header compiles against the UI runtime types. An unknown source or action is
+rejected with a GenError.
+
 Run: python3 -m umetate.test_panel
 """
 
@@ -63,7 +64,7 @@ def main() -> int:
     if src == checked_in:
         print("ok: firmware/src/panel.h is up to date with panel.json")
     else:
-        print("FAIL: firmware/src/panel.h is stale — regenerate it")
+        print("FAIL: firmware/src/panel.h is stale. Regenerate it.")
         failures += 1
 
     ok, msg = _compile(panel)
@@ -272,7 +273,7 @@ def main() -> int:
     )
     failures += 0 if bad_sources == ["ENC_KNOB5"] else 1
 
-    # the scope + spectro widgets generate (and compile against ui.h); the
+    # the scope + spectro widgets generate (and compile against ui.h), the
     # `channel` field selects the op index (0..3 -> "op N of the active part"),
     # `active` selects the active operator (0x40), and `mix_part` selects a part
     # mix (0x80|part).
@@ -347,7 +348,7 @@ def main() -> int:
 
     # ratio + semi params carry sorted landmark tables, and every emitted table is
     # referenced from DISP_TBL (no orphan tables). The ratio first entries pin the
-    # 0.50, sqrt(2)/2, pi/4, sqrt(3)/2, 1.00 series; the semi ones pin integer
+    # 0.50, sqrt(2)/2, pi/4, sqrt(3)/2, 1.00 series, the semi ones pin integer
     # semitone detents.
     lms: PanelManifest = {
         "name": "lms",

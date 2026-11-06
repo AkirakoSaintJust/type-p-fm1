@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: GPL-3.0-only */
-/* Warm-reset guard, retained in RAM only. Never writes the bootloader/flash.
- * This cannot rescue an image that fails before reaching the application. */
+/* Warm-reset guard, retained in RAM only, which never writes the bootloader or
+ * the flash. It cannot rescue an image that fails before reaching the application. */
 #ifndef FELUCCA_BOOTGUARD_H
 #define FELUCCA_BOOTGUARD_H
 #include <stdint.h>
@@ -36,7 +36,7 @@ static int bootguard_manual(uint32_t buttons)
 }
 
 /* Running-firmware rescue chord: OCT- and OCT+ held together for
- * BOOTGUARD_CHORD_MS. `now` is a millisecond clock; releasing either button
+ * BOOTGUARD_CHORD_MS. `now` is a millisecond clock, releasing either button
  * starts the interval again. The caller reboots into BOOT_RECOVERY. */
 typedef struct { uint32_t since; uint8_t held; } bootguard_chord_t;
 static int bootguard_chord(bootguard_chord_t *c, uint32_t buttons, uint32_t now)

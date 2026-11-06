@@ -1,12 +1,12 @@
 /* SPDX-License-Identifier: GPL-3.0-only
  * Copyright (C) 2026 Leo Kuroshita (@kurogedelic), Hügelton Instruments */
-/* Felucca update loader (device side). Runs from RAM, started by the SPL from
- * an update record, with interrupts off: USB is polled from the main loop.
- * It is a USB-MIDI device "Felucca Update" (1209:0002) that answers the
- * M-UPGRADE update protocol as "ota-FM-1_900" (SMK: "ota-SMK-37 Pro_900", or the
- * SMK_MODEL build's name; hosts look for "ota-"), and
- * writes the app area only (ldr_core.c). The UBOOT soft key works here too.
- * Single compilation unit. */
+/* Felucca update loader (device side). It runs from RAM, started by the SPL
+ * from an update record, with interrupts off, so USB is polled from the main
+ * loop. It presents itself as a USB-MIDI device called "Felucca Update"
+ * (1209:0002) and answers the M-UPGRADE update protocol as "ota-FM-1_900", or
+ * on SMK-37 boards as "ota-SMK-37 Pro_900" or the SMK_MODEL build's name, since
+ * hosts look for the "ota-" prefix. The only flash it writes is the app area
+ * (ldr_core.c), and the UBOOT soft key works here too. Single compilation unit. */
 #include <stdint.h>
 #define FELUCCA_LOADER 1
 #define FELUCCA_CDC 0
@@ -22,7 +22,7 @@
 #define RING_PUBLISH() __asm__ volatile("" ::: "memory")
 #include "fm1_time.h"
 #include "fm1_sys.h"
-/* the loader may write the app area and erase update records; never the head */
+/* the loader may write the app area and erase update records, never the head */
 #if BOARD_SMK37
 /* SMK: app area 0x4000..0x9CFFF, records in the VM 0x9D000..0xBFFFF only: never BTIF / USRTRIM
  * 0xC0000..0xC1FFF, USR 0xF4000.., key_mac 0xFF000 (FL_APP / FL_REC, asserted in fm1_flash.h; the RAM
@@ -145,7 +145,7 @@ void ldr_cstart(void)
 {
     uint32_t *p;
     ldr_record_clear();                             /* first thing: a crash below cannot loop through a
-                                                     * warm reset; resume after power loss uses the flash record */
+                                                     * warm reset, resume after power loss uses the flash record */
     for (p = _bss_start; p < _bss_end; p++)
         *p = 0;
     ldr_main();

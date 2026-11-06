@@ -4,18 +4,19 @@
 state, the universal voice-mode params, and the note_on/off/all_off/reset
 allocation.
 
-Pure emission (like `_backend`): every function returns C source lines. The
-synth-specific note→increment glue lives in `<name>_note_derived` (emitted by the
-backend); this module owns the allocation semantics — poly / mono (with
-`unison_count` stacked voices) — and
-the per-voice base increment `voice_inc[v]` (note_to_inc × detune) that the
-note-derived increments scale. Portamento (glide) ramps `voice_inc[v]` toward
-`voice_target_inc[v]` at a constant rate (linear in the increment, no LUT); the
-ramp lives in `glide()` and re-runs the note→increment glue each block.
+Pure emission, like `_backend`, so every function returns C source lines. The
+synth-specific note→increment glue is in `<name>_note_derived` (emitted by the
+backend). This module owns the allocation semantics, poly and mono (with
+`unison_count` stacked voices), and the per-voice base increment `voice_inc[v]`
+(note_to_inc × detune) that the note-derived increments scale. Portamento (glide)
+ramps `voice_inc[v]` toward `voice_target_inc[v]` at a constant rate, linear in the
+increment with no LUT. The ramp is in `glide()`, which re-runs the note→increment
+glue each block.
 
-The six mode params are **per-part** when the patch is multitimbral (`n_parts > 1`):
-each part has its own poly/mono (stacked)/legato + counts + times. Single-timbre keeps them
-global. `mode_ref` emits the right accessor for the current addressing mode.
+The six mode params are **per-part** when the patch is multitimbral (`n_parts > 1`),
+so each part has its own poly/mono (stacked)/legato plus counts and times.
+Single-timbre keeps them global, and `mode_ref` emits the right accessor for the
+current addressing mode.
 """
 
 from __future__ import annotations
@@ -24,14 +25,14 @@ from ._ir import ParamEntry
 
 # The release tail: a released voice stays allocated (rendered with gate=0, so its
 # envelope runs the release stage) for up to this many control blocks before it is
-# freed for stealing. 8192 blocks ≈ 5.9 s at 44100/32 — long enough for the
+# freed for stealing. 8192 blocks ≈ 5.9 s at 44100/32, which is long enough for the
 # slowest DX rate (0 ≈ 5.7 s to −72 dB). The voice is silent (and steal-first)
-# once its envelope actually reaches zero; this only bounds the hold.
+# once its envelope actually reaches zero, this only bounds the hold.
 RELEASE_BLOCKS = 8192
 
 # (cname, default, friendly name, min, max, unit, display, curve) for the seven
 # universal voice-mode params. Multi-timbre: per-part arrays addressed through the
-# part index; the single-timbre fallback keeps them global scalars.
+# part index, the single-timbre fallback keeps them global scalars.
 MODE_PARAMS: tuple[tuple[str, int, str, int, int, str, str, str], ...] = (
     ("vm_mode", 0, "mode", 0, 1, "", "mode", "linear"),  # 0=poly 1=mono
     ("vm_unison_count", 1, "unison_count", 1, 8, "", "raw", "linear"),
@@ -64,9 +65,10 @@ MODE_PARAMS: tuple[tuple[str, int, str, int, int, str, str, str], ...] = (
 def mode_param_entries(
     start_id: int, n_parts: int = 1, only_part: int | None = None
 ) -> list[ParamEntry]:
-    """The seven mode params as ParamEntrys. Single-timbre (n_parts == 1): global
-    (part=None). Multi-timbre: per-part (part 0..n_parts-1, `.p{p}` names);
-    `only_part` restricts to one part (the voice block builds them part-major)."""
+    """The seven mode params as ParamEntrys. Single-timbre (n_parts == 1) keeps them
+    global (part=None), whilst multi-timbre makes them per-part (part
+    0..n_parts-1, `.p{p}` names). `only_part` restricts to one part, because the
+    voice block builds them part-major."""
     entries: list[ParamEntry] = []
     for cname, default_, name, lo, hi, unit, disp, curve in MODE_PARAMS:
         if n_parts > 1:
@@ -159,9 +161,9 @@ def voice_state_fields(per_part: bool) -> list[tuple[str, str]]:
 
 def helpers(per_part: bool) -> list[str]:
     """Static helpers shared by note_on/note_off. `voice_mono_active` is emitted
-    into the SRAM `.dsp_text` section (it is called from the note handlers that run
-    on the DSP core), so it must be `always_inline` — a compiler-chosen call would
-    branch from SRAM into the XIP `.text` section (rejected by build.py)."""
+    into the SRAM `.dsp_text` section, because it is called from the note handlers
+    that run on the DSP core, so it must be `always_inline`. A compiler-chosen call
+    would branch from SRAM into the XIP `.text` section, which build.py rejects."""
     if per_part:
         return [
             "static inline __attribute__((always_inline)) uint32_t voice_mono_active(",
@@ -312,7 +314,7 @@ def _note_on_ch_single(name: str) -> list[str]:
 
 def _note_on_ch_parts(name: str) -> list[str]:
     """The multitimbral routing: a note fires every matching part (channel +
-    keyzone), each allocating per its own voice mode — poly (one voice) or mono
+    keyzone), each allocating per its own voice mode, poly (one voice) or mono
     (the part's `unison_count` stacked voices, legato/priority/portamento)."""
     return [
         f"UMETATE_DSP_API void {name}_dsp_note_on_ch_s({name}_state *state, uint32_t note, uint32_t velocity, uint32_t channel) {{",
@@ -503,11 +505,11 @@ def note_off(name: str, n_parts: int) -> list[str]:
 
 def glide(name: str, per_part: bool) -> list[str]:
     """The per-block portamento ramp (indented for the render loop): move each
-    gated voice's `voice_inc[v]` toward `voice_target_inc[v]` at a constant rate
-    (linear in the increment, one add per voice per block), re-deriving the
-    note→increment glue when the increment moves. `vm_portamento` is the one-octave
-    glide time in ms (0 = off), converted here to the increment step
-    `step = tgt·23777/ms >> 16` (23777 = 32768·32·1000/44100)."""
+    gated voice's `voice_inc[v]` toward `voice_target_inc[v]` at a constant rate.
+    The rate is linear in the increment, one add per voice per block. The ramp
+    re-derives the note→increment glue when the increment moves, and `vm_portamento`
+    is the one-octave glide time in ms (0 = off), converted here to the increment
+    step `step = tgt·23777/ms >> 16` (23777 = 32768·32·1000/44100)."""
     rate = mode_ref("vm_portamento", per_part, "voice_part[v]")
     return [
         "        for (uint32_t v = 0; v < NVOICE; v++) {",

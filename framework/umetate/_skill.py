@@ -4,8 +4,9 @@
 
 `references/` are byte-for-byte copies of the canonical docs (with a `GENERATED`
 banner where the format allows), so a skill is self-contained without becoming a
-second source of truth. `generate` writes them; `check` regenerates to memory and
-diffs — any drift is an error, never silently accepted.
+second reference for the same text. `generate` writes them, and `check`
+regenerates to memory and diffs, so any drift is an error rather than something
+silently accepted.
 
 Run `python -m umetate._skill generate` to (re)write the bundles after editing a
 canonical source.
@@ -23,7 +24,7 @@ _ROOT = Path(__file__).resolve().parents[1]
 _SKILLS = _ROOT / "skills"
 
 # (skill, generated path) -> (canonical source, banner?)
-# Markdown sources get a `GENERATED` banner; JSON schemas are copied byte-for-byte
+# Markdown sources get a `GENERATED` banner, JSON schemas are copied byte-for-byte
 # (JSON has no comments, so no banner is possible there).
 _SOURCES: dict[tuple[str, str], tuple[str, bool]] = {
     (
@@ -78,9 +79,10 @@ def render(skill: str, rel: str) -> str:
 def generate() -> None:
     """(Re)write every generated `references/` file from its canonical source.
 
-    Writes bytes (not `write_text`), so the canonical sources' LF line endings are
-    preserved verbatim — on Windows, `write_text` would re-translate `\n` to `\r\n`
-    and every regeneration would churn the committed copies.
+    Writes bytes rather than calling `write_text`, because the canonical sources'
+    LF line endings are preserved verbatim. On Windows `write_text` would
+    re-translate `\n` to `\r\n`, and every regeneration would churn the committed
+    copies.
     """
     for (skill, rel), _ in _SOURCES.items():
         dest = _SKILLS / skill / rel

@@ -1,11 +1,14 @@
 # SPDX-License-Identifier: GPL-3.0-only
 # Copyright (C) 2026 P1Onken (umetate)
-"""`umetate build` — generate + target compile + package → `.fwsc`.
+"""`umetate build`: generate the firmware, compile it for the target, and package
+the `.fwsc`.
 
-The target branch only (host/WASM are `deep-check`/`web-build`); `blocked` without
-the JieLi toolchain. Wraps the inherited `firmware/tools/cmake_target.py` build
-(strangler-fig, not a rewrite). The toolchain/SDK come from `$JIELI_TOOLCHAIN` /
-`$AC79_SDK`, the local `.jieli/` checkout, or the `umetate-target` volume.
+This is the target branch, whilst the host and WASM builds are in `deep-check` and
+`web-build`. A missing JieLi toolchain leaves the command `blocked` rather than
+failing halfway. It wraps the inherited `firmware/tools/cmake_target.py` build, a
+strangler-fig arrangement rather than a rewrite. The toolchain and SDK come from
+`$JIELI_TOOLCHAIN` and `$AC79_SDK`, the local `.jieli/` checkout, or the
+`umetate-target` volume.
 """
 
 from __future__ import annotations
@@ -42,8 +45,9 @@ def _volume_populated() -> bool:
 def _resolve() -> tuple[str, str] | None:
     """The (toolchain, sdk) container-side paths, or `None` when nothing is set up.
 
-    Precedence: explicit `$JIELI_TOOLCHAIN`/`$AC79_SDK`, then the `umetate-target`
-    volume (the canonical `setup` location), then the local `.jieli/` checkout.
+    Precedence: an explicit `$JIELI_TOOLCHAIN` and `$AC79_SDK` pair comes first,
+    then the `umetate-target` volume (the canonical `setup` location), then the
+    local `.jieli/` checkout.
     """
     tc_env, sdk_env = os.environ.get("JIELI_TOOLCHAIN"), os.environ.get("AC79_SDK")
     if tc_env and sdk_env:
@@ -72,7 +76,7 @@ def _run_posix(cmd: list[str], cwd: Path) -> int:
 
 
 def _synth_main(args: argparse.Namespace) -> int:
-    """`umetate build --synth <dir>` — compose a synth project into a firmware
+    """`umetate build --synth <dir>`, compose a synth project into a firmware
     (roadmap §6.11.4, F7): generate the engine/panel/CC/layout files into
     `firmware/gen/`, host-build the composition and run the project's script, then
     hand the target build to the toolchain (blocked without it)."""
@@ -100,7 +104,8 @@ def _synth_main(args: argparse.Namespace) -> int:
         print(f"gen      {path}")
 
     # the host leg: compile the composition (the framework + the app + the engine)
-    # and run the project's script — WAV + screen shots prove it works on a computer.
+    # and run the project's script. The WAV and screen shots prove it works on a
+    # computer.
     firmware = _ROOT / "firmware"
     host_out = firmware / "build" / "host"
     host_out.mkdir(parents=True, exist_ok=True)
@@ -138,7 +143,7 @@ def _synth_main(args: argparse.Namespace) -> int:
     resolved = _resolve()
     if resolved is None:
         print(
-            "build --synth: target package blocked — JieLi toolchain not set up "
+            "build --synth: target package blocked, JieLi toolchain not set up "
             "(`umetate setup`); the host leg is complete.",
             file=sys.stderr,
         )
@@ -224,7 +229,7 @@ def main(argv: list[str] | None = None) -> int:
     resolved = _resolve()
     if resolved is None:
         print(
-            "build: blocked — JieLi toolchain not set up (`umetate setup`)",
+            "build: blocked, JieLi toolchain not set up (`umetate setup`)",
             file=sys.stderr,
         )
         return 1

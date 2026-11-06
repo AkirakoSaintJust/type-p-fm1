@@ -10,17 +10,17 @@ allowed-tools: read, grep, glob, edit, shell, websearch, webfetch
 # umetate synthesizer development
 
 Use this skill when the user wants to design, implement, test, or review a custom
-synthesizer for the M-VAVE FM-1 or SMK-37 on the umetate framework. Run from the
-repository root, every command and path below is relative to it.
+synthesizer for the M-VAVE FM-1 or SMK-37 on the umetate framework. Run every
+command from the repository root, because every path below is relative to it.
 
-Work as a collaborative embedded-synth engineer, not an autonomous feature
-factory. Preserve the user's product decisions and repository state. The user
+Work as a collaborative embedded-synth engineer rather than an autonomous feature
+factory, and preserve the user's product decisions and repository state. The user
 retains control over every device write.
 
 ## Start here
 
 1. Read `README.md`, `docs/roadmap.md`, `docs/tutorial.md`, and `LICENSING.md` in
-   that order. `docs/roadmap.md` is the single source of truth for status.
+   that order. `docs/roadmap.md` is the only reference for status.
 2. Inspect `git status --short` and any project instructions before editing.
    Never discard or overwrite user work.
 3. Read `references/platform-facts.md` (hardware facts) and
@@ -29,7 +29,7 @@ retains control over every device write.
 
 ## The prime directive: design before code
 
-No code is written until **three artifacts are complete, mutually consistent, and
+No code is written until **three artefacts are complete, mutually consistent, and
 user-confirmed**:
 
 1. **Synth design + architecture**, the voice graph, the parameter manifest, and
@@ -45,8 +45,8 @@ user-confirmed**:
    `templates/dsp-algorithm.md`, `templates/code-structure.md`).
 
 These map **one-to-one** onto `patch.json`, `panel.json`, and the plan/evidence
-artifacts. Step 5 (authoring) is _mechanical translation_, not design. If translation
-requires a new design decision, stop and ask. Do not improvise in code.
+artefacts. Step 5 (authoring) is _mechanical translation_ rather than design, so if
+translation requires a new design decision, stop and ask. Don't improvise in code.
 
 ## Operating contract
 
@@ -98,7 +98,7 @@ exact names are board-specific, always read the `BTN_*`/`ENC_*` enums in
 to the FM-1, the velocity keybed, 16 pads, 4 faders (+ bank), 8 encoders
 (+ bank), and the pitch/mod wheels.
 
-Record each control's **kind**, not just its name: a smooth analog *pot* (the
+Record each control's **kind** as well as its name: a smooth analog *pot* (the
 FM-1's `MASTER`) is volume and platform-owned, a detented *encoder* is a parameter
 control. Distinguish *dedicated* knobs (`ALGORITHM`, `PRESETS`) from *page-slot*
 knobs (`KNOB1–4`). Name collisions exist, the FM-1 has both a `SELECT` *knob* and
@@ -121,7 +121,7 @@ of asking the user to repeat them.
 - **Parameter manifest** must list every parameter: its flattened
   `<instance>.<param>` target, min/max/default, curve, unit, rate
   (`sample`/`block`), and whether it is `modulatable`. Give every parameter a
-  unit and a meaning, not just bounds (a 0..99 level, a Q15 fraction, a ratio, a
+  unit and a meaning as well as bounds (a 0..99 level, a Q15 fraction, a ratio, a
   rate in hertz). This is the source of the generated `params.json`.
 - **Tables** must name any wavetable/segments/spectrum/phase-map data (the
   `tables:` section → `const` XIP).
@@ -163,7 +163,7 @@ screen. LED/pad feedback, and the full control flow.
   every context (menu), its pages, and the *modes* within a page (a page whose
   widgets change under a hold/shift, or a multi-mode page). A fresh reader must be
   able to draw the screen for every state, this is the panel's *graphical UI
-  correspondence*, not just its bindings.
+  correspondence* as well as its bindings.
 - **Control flow:** name every transition, `push`/`pop`/`pop_home`/`next_page`/
   `prev_page`/`set_page`/`bank_next`/`bank_prev`, and which control triggers it.
   A fresh agent must be able to trace every button/encoder/key through every
@@ -194,7 +194,7 @@ screen. LED/pad feedback, and the full control flow.
     targets (key-follow and velocity-follow), give them the same page *shape* in
     the same menus, one page set per source, differing only where the source
     differs (velocity drops the breakpoint/LO-HI and adds a single per-target
-    amount + a global on/off). Put a "targets live in EDIT/FX/ENV" hint on the
+    amount + a global on/off). Put a "targets are in EDIT/FX/ENV" hint on the
     global page that owns the shared control, so the user learns one set of pages
     and understands the other.
 
@@ -254,8 +254,8 @@ Turn the two designs into one living plan:
   audio callback ≤ 2.9 ms (50% of 5.8 ms). CPU0 `.data`/`.bss` ≤ 96 KiB. CPU1
   `.cpu1_bss` ≤ 16 KiB, `.dsp_text` ≤ 32 KiB, `.pool` ≤ 336 KiB. XIP code + const
   ≤ 568 KiB, stack 24 KiB CPU0 + 8 KiB CPU1.
-- `templates/evidence-matrix.md`, one row per layer, exact command/artifact.
-- The **voice count is a measured claim**, run `umetate budget --voices N,M --parts P`
+- `templates/evidence-matrix.md`, one row per layer, exact command/artefact.
+- The **voice count is a measured figure**, run `umetate budget --voices N,M --parts P`
   (host timing: per-voice cost + linearity, the 2.9 ms device fit is the
   emulator's job, `blocked` until the firmware is built). Never estimate polyphony.
 - `templates/dsp-algorithm.md`, the exact algorithm for each component (see
@@ -325,8 +325,8 @@ the verification plan.
 
 ### 4. The consistency gate (fully green before any code)
 
-Cross-check the three artifacts against each other. A failure means _fix the
-artifact_, never the code. Walk every item, do not skip:
+Cross-check the three artefacts against each other. A failure means _fix the
+artefact_, never the code. Walk every item, do not skip:
 
 - [ ] Every GUI binding target is a parameter in the manifest, or a reserved
       action verb from `panel.schema.json`.
@@ -415,7 +415,7 @@ the deterministic "is this increment done" check. The wider, slower steps follow
 
 ```sh
 umetate deep-check --all                       # the gate (one command, exit 0/1)
-umetate budget <patch.json> --voices N         # the measured polyphony claim
+umetate budget <patch.json> --voices N         # the measured polyphony figure
 umetate build --synth examples/<project>       # compose + host evidence + package
 umetate emu --check --mhz 240                  # boot the package, hold a chord
 ```

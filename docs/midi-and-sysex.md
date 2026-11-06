@@ -10,7 +10,7 @@
 - **Pitch bend** bends the whole voice.
 - **Program change** selects a patch.
 - **Continuous controllers** map to parameters, with each exposed parameter
-  getting a CC assigned in order from a base. The parameter list is the same one
+  getting a CC assigned in order from a base, and the parameter list is the same one
   the panel edits: algorithm, filter cutoff and resonance, wavefolder, the operator
   ratios, levels, waveforms, feedback, mutes, and the envelopes, plus the voice
   modes.
@@ -54,6 +54,15 @@ bytes, and unpacked before the CRC.
 Use any SysEx librarian that can send and receive raw SysEx. Request a parameter
 or part-patch dump and record the reply, then send it back to restore. The bank is
 128 single-part patches and 64 multi patches.
+
+The host tool also converts an OPM text bank into single-part patches:
+
+```sh
+umetate opm convert voices.opm --out voices.bank.json --syx voices.syx
+```
+
+Load a converted part from the `GLO` browser. `docs/opm-to-type-p-fm1.md` carries
+the mapping, the bank geometry, and the measured tolerance.
 
 A Type P.fm1 patch is a four-operator FM patch, so a DX7 sysex file will not
 load, because DX7 is a six-operator format.

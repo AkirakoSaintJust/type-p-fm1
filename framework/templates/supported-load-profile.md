@@ -1,7 +1,7 @@
 # Supported-load profile
 
 > Record the simultaneous maxima you intend to support. A test outside this
-> profile is informative, though it is not an acceptance failure unless the profile
+> profile is informative, though it isn't an acceptance failure unless the profile
 > says so.
 
 ## Profile
@@ -39,7 +39,7 @@
 - **Parameter extremes:**
 - **Duration:**
 - **Pass condition:**
-- **Artifact:**
+- **Artefact:**
 
 ## Outside the profile
 

@@ -1,7 +1,7 @@
 # Feature contract
 
-> One contract per accepted feature. A feature is done when the contract and its
-> evidence are satisfied. Compiling is one check among several.
+> Write one contract per accepted feature. A feature is done when the contract and
+> its evidence are satisfied, and compiling is one check among several.
 
 ## Identity
 
@@ -12,9 +12,9 @@
 
 ## Player outcome
 
-- **What the player can do that they could not do before:**
-- **How it sounds or behaves:**
-- **How it fails visibly and safely:**
+- **New player action:**
+- **Sound and behaviour:**
+- **Failure mode:**
 
 ## Dependencies and interactions
 

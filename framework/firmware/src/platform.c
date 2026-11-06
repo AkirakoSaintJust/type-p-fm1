@@ -217,8 +217,8 @@ static void ota_commit(const uint8_t *parm)
 }
 #include "recovery.c"
 
-/* ---- storage: [magic][length][crc32] then the bytes. A save erases (~50 ms a sector with the interrupts off:
- * the sound drops out), so save when nothing plays, not on every knob step. Each sector wears out after ~100,000 */
+/* ---- storage: [magic][length][crc32] then the bytes. A save erases (~50 ms a sector with the interrupts off,
+ * so the sound drops out). Save when nothing plays, not on every knob step. Each sector wears out after ~100,000 */
 static uint32_t crc32(const uint8_t *p, uint32_t n)
 {
     uint32_t c = 0xFFFFFFFFu, k;
@@ -347,7 +347,7 @@ static void midi_send_sysex(const uint8_t *frame, uint32_t n)   /* a full F0..F7
                    (i + 2u < n ? (uint32_t)frame[i + 2u] << 24 : 0u));
 }
 
-/* ---- the timer: 10 kHz key scan, milliseconds, USB at 2 kHz. It outranks the audio ISR; nested in a
+/* ---- the timer: 10 kHz key scan, milliseconds, USB at 2 kHz. It outranks the audio ISR, nested in a
  * render it only scans, counts and feeds the USB audio stream (as sloopDX main.c) */
 static volatile uint8_t in_audio;
 void fm1_timer5_irq(void)
@@ -403,8 +403,8 @@ static void app_audio(int32_t *out, uint32_t n);
 static void app_main(void);
 #ifdef UMETATE_TEST_DUMP
 /* The raw pre-master `app_audio` output (256 stereo frames) of audio block
-   `UMETATE_TEST_DUMP` — the bit-exactness gate. A target build with
-   `-DUMETATE_TEST_DUMP=N` leaves it in `.bss`; `fm1-emu --dump <addr> 512` reads it
+   `UMETATE_TEST_DUMP`, the bit-exactness gate. A target build with
+   `-DUMETATE_TEST_DUMP=N` leaves it in `.bss`, where `fm1-emu --dump <addr> 512` reads it
    back, and the before/after of a hand-asm change must be byte-identical. `volatile`
    so the stores are not dead-store-eliminated (nothing in C reads them back). */
 static volatile int32_t test_dump[HALF_WORDS];

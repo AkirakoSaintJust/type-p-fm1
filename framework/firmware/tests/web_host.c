@@ -1,9 +1,9 @@
 /* SPDX-License-Identifier: GPL-3.0-only */
-/* A fake FM-1 in the browser: the app (src/rib.c) runs unchanged in WebAssembly.
- * platform.c includes this file instead of tests/host.c when UMETATE_WEB is set.
+/* A fake FM-1 in the browser, where the app (src/rib.c) runs unchanged in WebAssembly,
+ * and platform.c includes this file instead of tests/host.c when UMETATE_WEB is set.
  * The page sends input (buttons/keys/encoders) and reads the screen (the 240x240
  * RGB565 framebuffer) and the audio (a ring the worklet drains) back through the
- * web_* exports. Audio is pull-based: the worklet calls web_render(n), which steps
+ * web_* exports. Because audio is pull-based, the worklet calls web_render(n), which steps
  * the app one millisecond at a time until n frames exist, exactly as on the FM-1. */
 #include <stdint.h>
 #include <string.h>
@@ -104,7 +104,7 @@ static void app_audio(int32_t *out, uint32_t n);
 static void app_init(void);
 static void app_step(void);
 
-/* ---- audio: a ring the worklet drains; platform_poll fills it, web_render empties it ---- */
+/* ---- audio: a ring the worklet drains, platform_poll fills it, web_render empties it ---- */
 #define RING 4096u
 static float ring[RING * 2];
 static uint32_t ring_frames, ring_read;

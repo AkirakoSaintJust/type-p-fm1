@@ -4,13 +4,13 @@
  * a panel described by generated tables (gen/panel.h). Pure C, runs on CPU0 in
  * app_main (never in the audio callback), renders through gfx.c's canvas.
  *
- * The tables are `const` (XIP); the only mutable runtime state is the context/page
+ * The tables are `const` (XIP), and the only mutable runtime state is the context/page
  * stack, the shared param values, the bend slot, and one `ui_dirty[]` entry per
  * widget (its last-drawn value, for the retained-mode dirty check).
  *
- * Layout convention (the 240x240 screen): `row` is a text line (16 px, FONT_S;
+ * Layout convention (the 240x240 screen): `row` is a text line (16 px, FONT_S, and
  * a 2-line widget uses `span` = 2, e.g. a FONT_L value), `col` is 0 = full width or
- * a column for side-by-side (a col = 120 px), `span` is the height in lines. */
+ * a column for side-by-side (a col = 120 px), and `span` is the height in lines. */
 #pragma once
 #include <stdint.h>
 
@@ -98,7 +98,7 @@ enum {
 };
 
 #define UI_NO_PARAM 0xFFFFu
-#define UI_PARAM_MAX 512u   /* the ui_params[] cap; the generator errors beyond it */
+#define UI_PARAM_MAX 512u   /* the ui_params[] cap, the generator errors beyond it */
 
 /* ---- the generated (const, XIP) tables ---- */
 typedef struct {
@@ -271,7 +271,7 @@ void ui_draw_custom(const ui_widget *w);
 void ui_save_slot_name(uint8_t kind, uint16_t slot, char *out, uint32_t cap);
 
 /* ---- the slot browser (the preset-browse popup): the app calls ui_browser_step
- * each loop with the encoder delta + now; the framework scrolls the slot, shows its
+ * each loop with the encoder delta + now, the framework scrolls the slot, shows its
  * name, and after `timeout_ms` idle calls ui_preset_apply(kind, slot) + closes. ---- */
 typedef struct {
     uint8_t open;

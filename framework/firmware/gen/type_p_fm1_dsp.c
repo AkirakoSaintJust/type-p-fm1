@@ -143,8 +143,10 @@ typedef struct type_p_fm1_state {
     int32_t f1_vs_k;
     int32_t f2_vs_k;
     int32_t fenv_vs_k;
-    int32_t lp_low;
-    int32_t lp_band;
+    int32_t lp_z1;
+    int32_t lp_z2;
+    int32_t lp_z3;
+    int32_t lp_z4;
     int32_t lp_f_eff;
     int32_t lp_fc;
     uint32_t fenv_stage;
@@ -154,8 +156,10 @@ typedef struct type_p_fm1_state {
     uint32_t fenv_r3_eff;
     uint32_t fenv_r4_eff;
     int32_t wf_amount_eff;
-    int32_t lp2_low;
-    int32_t lp2_band;
+    int32_t lp2_z1;
+    int32_t lp2_z2;
+    int32_t lp2_z3;
+    int32_t lp2_z4;
     int32_t lp2_f_eff;
     int32_t lp2_fc;
     uint32_t voice_age[NVOICE];
@@ -319,8 +323,9 @@ typedef struct type_p_fm1_state {
     int32_t f2_vs_amount;
     int32_t fenv_vs_amount;
     int32_t lp_f;
-    int32_t lp_q;
-    int32_t lp_type;
+    int32_t lp_res;
+    int32_t lp_comp;
+    int32_t lp_mode;
     int32_t lp_on;
     int32_t lp_fenv_depth;
     int32_t fenv_r1;
@@ -337,8 +342,9 @@ typedef struct type_p_fm1_state {
     int32_t wf_type;
     int32_t wf_amount_depth;
     int32_t lp2_f;
-    int32_t lp2_q;
-    int32_t lp2_type;
+    int32_t lp2_res;
+    int32_t lp2_comp;
+    int32_t lp2_mode;
     int32_t lp2_on;
     int32_t lp2_fenv_depth;
     uint32_t patch_gate;
@@ -437,11 +443,11 @@ static inline __attribute__((always_inline)) uint32_t note_to_inc(uint32_t note)
     return note_inc_c9[note % 12u] >> (10u - note / 12u);
 }
 
-#define PARAM_COUNT 313
+#define PARAM_COUNT 315
 
 typedef struct { uint32_t id; const char *name; int32_t min, max, def;
                  uint8_t curve; uint8_t rate; const char *unit; } dsp_param;
-const dsp_param type_p_fm1_dsp_params[313] = {
+const dsp_param type_p_fm1_dsp_params[315] = {
     { 0u, "op1_ratio.p0", 32768, 1048576, 65536, 0u, 0u, "" },
     { 1u, "op1_detune.p0", -50, 50, 0, 0u, 0u, "" },
     { 2u, "op1_waveform.p0", 0, 11, 0, 0u, 0u, "" },
@@ -722,42 +728,44 @@ const dsp_param type_p_fm1_dsp_params[313] = {
     { 277u, "f1_cutoff_vs", -100, 100, 0, 0u, 0u, "" },
     { 278u, "f2_cutoff_vs", -100, 100, 0, 0u, 0u, "" },
     { 279u, "fenv_vs", -100, 100, 0, 0u, 0u, "" },
-    { 280u, "cutoff", 0, 65535, 8000, 1u, 0u, "" },
-    { 281u, "res", 0, 65535, 40000, 0u, 0u, "" },
-    { 282u, "filter_type", 0, 2, 0, 0u, 0u, "" },
-    { 283u, "filter_on", 0, 1, 0, 0u, 0u, "" },
-    { 284u, "fenv_depth", 0, 65535, 0, 0u, 0u, "" },
-    { 285u, "fenv_r1", 0, 99, 80, 0u, 0u, "" },
-    { 286u, "fenv_r2", 0, 99, 60, 0u, 0u, "" },
-    { 287u, "fenv_r3", 0, 99, 50, 0u, 0u, "" },
-    { 288u, "fenv_r4", 0, 99, 80, 0u, 0u, "" },
-    { 289u, "fenv_l1", 0, 99, 99, 0u, 0u, "" },
-    { 290u, "fenv_l2", 0, 99, 93, 0u, 0u, "" },
-    { 291u, "fenv_l3", 0, 99, 87, 0u, 0u, "" },
-    { 292u, "fold", 0, 32767, 0, 0u, 0u, "" },
-    { 293u, "fold_threshold", 0, 32767, 0, 0u, 0u, "" },
-    { 294u, "fold_folds", 1, 8, 1, 0u, 0u, "" },
-    { 295u, "fold_on", 0, 1, 0, 0u, 0u, "" },
-    { 296u, "fold_type", 0, 0, 0, 0u, 0u, "" },
-    { 297u, "wf.amount_depth", -32768, 32767, 0, 0u, 0u, "" },
-    { 298u, "cutoff2", 0, 65535, 8000, 1u, 0u, "" },
-    { 299u, "res2", 0, 65535, 40000, 0u, 0u, "" },
-    { 300u, "filter2_type", 0, 2, 0, 0u, 0u, "" },
-    { 301u, "filter2_on", 0, 1, 0, 0u, 0u, "" },
-    { 302u, "lp2.fenv_depth", -65536, 65535, 0, 0u, 0u, "" },
-    { 303u, "channel.p0", -1, 15, 0, 0u, 0u, "" },
-    { 304u, "channel.p1", -1, 15, 1, 0u, 0u, "" },
-    { 305u, "low.p0", 0, 127, 0, 0u, 0u, "" },
-    { 306u, "low.p1", 0, 127, 0, 0u, 0u, "" },
-    { 307u, "high.p0", 0, 127, 127, 0u, 0u, "" },
-    { 308u, "high.p1", 0, 127, 127, 0u, 0u, "" },
-    { 309u, "level.p0", 0, 99, 99, 0u, 0u, "" },
-    { 310u, "level.p1", 0, 99, 99, 0u, 0u, "" },
-    { 311u, "delay.p0", 0, 1000, 0, 0u, 0u, "ms" },
-    { 312u, "delay.p1", 0, 1000, 0, 0u, 0u, "ms" },
+    { 280u, "cutoff", 0, 55296, 8000, 1u, 0u, "" },
+    { 281u, "res", 0, 41942, 16000, 1u, 0u, "" },
+    { 282u, "lp.comp", -32768, 32767, 32767, 0u, 0u, "" },
+    { 283u, "filter_type", 0, 2, 0, 0u, 0u, "" },
+    { 284u, "filter_on", 0, 1, 0, 0u, 0u, "" },
+    { 285u, "fenv_depth", 0, 65535, 0, 0u, 0u, "" },
+    { 286u, "fenv_r1", 0, 99, 80, 0u, 0u, "" },
+    { 287u, "fenv_r2", 0, 99, 60, 0u, 0u, "" },
+    { 288u, "fenv_r3", 0, 99, 50, 0u, 0u, "" },
+    { 289u, "fenv_r4", 0, 99, 80, 0u, 0u, "" },
+    { 290u, "fenv_l1", 0, 99, 99, 0u, 0u, "" },
+    { 291u, "fenv_l2", 0, 99, 93, 0u, 0u, "" },
+    { 292u, "fenv_l3", 0, 99, 87, 0u, 0u, "" },
+    { 293u, "fold", 0, 32767, 0, 0u, 0u, "" },
+    { 294u, "fold_threshold", 0, 32767, 0, 0u, 0u, "" },
+    { 295u, "fold_folds", 1, 8, 1, 0u, 0u, "" },
+    { 296u, "fold_on", 0, 1, 0, 0u, 0u, "" },
+    { 297u, "fold_type", 0, 0, 0, 0u, 0u, "" },
+    { 298u, "wf.amount_depth", -32768, 32767, 0, 0u, 0u, "" },
+    { 299u, "cutoff2", 0, 55296, 8000, 1u, 0u, "" },
+    { 300u, "res2", 0, 41942, 16000, 1u, 0u, "" },
+    { 301u, "lp2.comp", -32768, 32767, 32767, 0u, 0u, "" },
+    { 302u, "filter2_type", 0, 2, 0, 0u, 0u, "" },
+    { 303u, "filter2_on", 0, 1, 0, 0u, 0u, "" },
+    { 304u, "lp2.fenv_depth", -65536, 65535, 0, 0u, 0u, "" },
+    { 305u, "channel.p0", -1, 15, 0, 0u, 0u, "" },
+    { 306u, "channel.p1", -1, 15, 1, 0u, 0u, "" },
+    { 307u, "low.p0", 0, 127, 0, 0u, 0u, "" },
+    { 308u, "low.p1", 0, 127, 0, 0u, 0u, "" },
+    { 309u, "high.p0", 0, 127, 127, 0u, 0u, "" },
+    { 310u, "high.p1", 0, 127, 127, 0u, 0u, "" },
+    { 311u, "level.p0", 0, 99, 99, 0u, 0u, "" },
+    { 312u, "level.p1", 0, 99, 99, 0u, 0u, "" },
+    { 313u, "delay.p0", 0, 1000, 0, 0u, 0u, "ms" },
+    { 314u, "delay.p1", 0, 1000, 0, 0u, 0u, "ms" },
 };
 typedef struct { uint32_t off; uint8_t part; } type_p_fm1_slot_t;
-static const type_p_fm1_slot_t type_p_fm1_slots[313] = {
+static const type_p_fm1_slot_t type_p_fm1_slots[315] = {
     { (uint32_t)offsetof(type_p_fm1_state, op1_ph_inc_ratio), 0u },
     { (uint32_t)offsetof(type_p_fm1_state, op1_ph_detune), 0u },
     { (uint32_t)offsetof(type_p_fm1_state, op1_osc_waveform), 0u },
@@ -1039,8 +1047,9 @@ static const type_p_fm1_slot_t type_p_fm1_slots[313] = {
     { (uint32_t)offsetof(type_p_fm1_state, f2_vs_amount), 255u },
     { (uint32_t)offsetof(type_p_fm1_state, fenv_vs_amount), 255u },
     { (uint32_t)offsetof(type_p_fm1_state, lp_f), 255u },
-    { (uint32_t)offsetof(type_p_fm1_state, lp_q), 255u },
-    { (uint32_t)offsetof(type_p_fm1_state, lp_type), 255u },
+    { (uint32_t)offsetof(type_p_fm1_state, lp_res), 255u },
+    { (uint32_t)offsetof(type_p_fm1_state, lp_comp), 255u },
+    { (uint32_t)offsetof(type_p_fm1_state, lp_mode), 255u },
     { (uint32_t)offsetof(type_p_fm1_state, lp_on), 255u },
     { (uint32_t)offsetof(type_p_fm1_state, lp_fenv_depth), 255u },
     { (uint32_t)offsetof(type_p_fm1_state, fenv_r1), 255u },
@@ -1057,8 +1066,9 @@ static const type_p_fm1_slot_t type_p_fm1_slots[313] = {
     { (uint32_t)offsetof(type_p_fm1_state, wf_type), 255u },
     { (uint32_t)offsetof(type_p_fm1_state, wf_amount_depth), 255u },
     { (uint32_t)offsetof(type_p_fm1_state, lp2_f), 255u },
-    { (uint32_t)offsetof(type_p_fm1_state, lp2_q), 255u },
-    { (uint32_t)offsetof(type_p_fm1_state, lp2_type), 255u },
+    { (uint32_t)offsetof(type_p_fm1_state, lp2_res), 255u },
+    { (uint32_t)offsetof(type_p_fm1_state, lp2_comp), 255u },
+    { (uint32_t)offsetof(type_p_fm1_state, lp2_mode), 255u },
     { (uint32_t)offsetof(type_p_fm1_state, lp2_on), 255u },
     { (uint32_t)offsetof(type_p_fm1_state, lp2_fenv_depth), 255u },
     { (uint32_t)offsetof(type_p_fm1_state, part_channel), 0u },
@@ -1221,8 +1231,10 @@ static UMETATE_DSP_API type_p_fm1_state *type_p_fm1_legacy(void) {
 #define f1_vs_k (S->f1_vs_k)
 #define f2_vs_k (S->f2_vs_k)
 #define fenv_vs_k (S->fenv_vs_k)
-#define lp_low (S->lp_low)
-#define lp_band (S->lp_band)
+#define lp_z1 (S->lp_z1)
+#define lp_z2 (S->lp_z2)
+#define lp_z3 (S->lp_z3)
+#define lp_z4 (S->lp_z4)
 #define lp_f_eff (S->lp_f_eff)
 #define lp_fc (S->lp_fc)
 #define fenv_stage (S->fenv_stage)
@@ -1232,8 +1244,10 @@ static UMETATE_DSP_API type_p_fm1_state *type_p_fm1_legacy(void) {
 #define fenv_r3_eff (S->fenv_r3_eff)
 #define fenv_r4_eff (S->fenv_r4_eff)
 #define wf_amount_eff (S->wf_amount_eff)
-#define lp2_low (S->lp2_low)
-#define lp2_band (S->lp2_band)
+#define lp2_z1 (S->lp2_z1)
+#define lp2_z2 (S->lp2_z2)
+#define lp2_z3 (S->lp2_z3)
+#define lp2_z4 (S->lp2_z4)
 #define lp2_f_eff (S->lp2_f_eff)
 #define lp2_fc (S->lp2_fc)
 #define voice_age (S->voice_age)
@@ -1397,8 +1411,9 @@ static UMETATE_DSP_API type_p_fm1_state *type_p_fm1_legacy(void) {
 #define f2_vs_amount (S->f2_vs_amount)
 #define fenv_vs_amount (S->fenv_vs_amount)
 #define lp_f (S->lp_f)
-#define lp_q (S->lp_q)
-#define lp_type (S->lp_type)
+#define lp_res (S->lp_res)
+#define lp_comp (S->lp_comp)
+#define lp_mode (S->lp_mode)
 #define lp_on (S->lp_on)
 #define lp_fenv_depth (S->lp_fenv_depth)
 #define fenv_r1 (S->fenv_r1)
@@ -1415,8 +1430,9 @@ static UMETATE_DSP_API type_p_fm1_state *type_p_fm1_legacy(void) {
 #define wf_type (S->wf_type)
 #define wf_amount_depth (S->wf_amount_depth)
 #define lp2_f (S->lp2_f)
-#define lp2_q (S->lp2_q)
-#define lp2_type (S->lp2_type)
+#define lp2_res (S->lp2_res)
+#define lp2_comp (S->lp2_comp)
+#define lp2_mode (S->lp2_mode)
 #define lp2_on (S->lp2_on)
 #define lp2_fenv_depth (S->lp2_fenv_depth)
 #define patch_gate (S->patch_gate)
@@ -1601,12 +1617,14 @@ UMETATE_DSP_API void type_p_fm1_render_pre_block(void) {
        `rate_scale`, which is velocity -> envelope rate (Q15 unity 32768, always
        >= 0), whilst a key-follow factor `k` (Q15) pushes each rate toward 0 (slower)
        or 99 (faster) and the effective rates are block-derived. Levels are total-level
-       0..99 -> Q15 gain via `fm1_level_gain`, at 0.25 dB/step. A level of 99 is max,
-       50 is ≈ −12 dB, and 0 is silence. `trigger` (default `voice_trig[v]`) resets to
-       attack on a note-on edge, even mid-note (a voice steal). Stages: 0=attack
-       (0->l1), 1=decay1 (l1->l2), 2=decay2 (l2->l3), 3=sustain (hold l3), 4=release
-       (->0). A gate edge starts release. There are no local declarations, because the
-       body is inlined once per operator, so every value is an inline expression. */
+       0..99 -> Q15 gain via `fm1_level_gain`. A stage ends when it is within 8 units
+       of its target on the side it is moving toward, so a target above the current
+       level runs up instead of snapping. A level of 99 is max and 0 is silence.
+       `trigger` (default `voice_trig[v]`) resets to attack on a note-on edge, even
+       mid-note (a voice steal). Stages: 0=attack (0->l1), 1=decay1 (l1->l2),
+       2=decay2 (l2->l3), 3=sustain (hold l3), 4=release (->0). A gate edge starts
+       release. There are no local declarations, because the body is inlined once per
+       operator, so every value is an inline expression. */
     if (0) { fenv_stage = 0u; fenv_level = 0; }
     if (patch_gate) {
         if (fenv_stage == 4u) { fenv_stage = 0u; fenv_level = 0; }
@@ -1617,17 +1635,29 @@ UMETATE_DSP_API void type_p_fm1_render_pre_block(void) {
         fenv_level = fm1_onepole(fenv_level,
             fm1_level_gain[fenv_l1],
             fm1_q16_mul(fm1_rate_coeff[fenv_r1_eff], 32768 << 1));
-        if (fenv_level >= fm1_level_gain[fenv_l1] - 8) { fenv_level = fm1_level_gain[fenv_l1]; fenv_stage = 1u; }
+        if (fm1_level_gain[fenv_l1] >= fenv_level
+                ? fenv_level >= fm1_level_gain[fenv_l1] - 8
+                : fenv_level <= fm1_level_gain[fenv_l1] + 8) {
+            fenv_level = fm1_level_gain[fenv_l1]; fenv_stage = 1u;
+        }
     } else if (fenv_stage == 1u) {
         fenv_level = fm1_onepole(fenv_level,
             fm1_level_gain[fenv_l2],
             fm1_q16_mul(fm1_rate_coeff[fenv_r2_eff], 32768 << 1));
-        if (fenv_level <= fm1_level_gain[fenv_l2] + 8) { fenv_level = fm1_level_gain[fenv_l2]; fenv_stage = 2u; }
+        if (fm1_level_gain[fenv_l2] >= fenv_level
+                ? fenv_level >= fm1_level_gain[fenv_l2] - 8
+                : fenv_level <= fm1_level_gain[fenv_l2] + 8) {
+            fenv_level = fm1_level_gain[fenv_l2]; fenv_stage = 2u;
+        }
     } else if (fenv_stage == 2u) {
         fenv_level = fm1_onepole(fenv_level,
             fm1_level_gain[fenv_l3],
             fm1_q16_mul(fm1_rate_coeff[fenv_r3_eff], 32768 << 1));
-        if (fenv_level <= fm1_level_gain[fenv_l3] + 8) { fenv_level = fm1_level_gain[fenv_l3]; fenv_stage = 3u; }
+        if (fm1_level_gain[fenv_l3] >= fenv_level
+                ? fenv_level >= fm1_level_gain[fenv_l3] - 8
+                : fenv_level <= fm1_level_gain[fenv_l3] + 8) {
+            fenv_level = fm1_level_gain[fenv_l3]; fenv_stage = 3u;
+        }
     } else if (fenv_stage == 3u) {
         fenv_level = fm1_level_gain[fenv_l3];
     } else {
@@ -1653,10 +1683,10 @@ UMETATE_DSP_API void type_p_fm1_render_pre_block(void) {
     f2_ks_k = key_on_on_x ? fm1_key_scale(voice_highest_note(), (uint32_t)key_bp_bp_x, f2_ks_lo, f2_ks_hi) : 0;
     f1_ks_k = key_on_on_x ? fm1_key_scale(voice_highest_note(), (uint32_t)key_bp_bp_x, f1_ks_lo, f1_ks_hi) : 0;
     lp_f_eff = fm1_key_apply(lp_f, fm1_key_add(f1_ks_k_x, f1_vs_k_x), 0, 65535);
-    lp_fc = fm1_clamp16(lp_f_eff + fm1_q16_mul(lp_fenv_depth, fenv_cv_x));
+    lp_fc = fm1_clamp16_max(lp_f_eff + fm1_q16_mul(lp_fenv_depth, fenv_cv_x << 1), 55296);
     wf_amount_eff = wf_amount + fm1_q15_mul(0, wf_amount_depth);
     lp2_f_eff = fm1_key_apply(lp2_f, fm1_key_add(f2_ks_k_x, f2_vs_k_x), 0, 65535);
-    lp2_fc = fm1_clamp16(lp2_f_eff + fm1_q16_mul(lp2_fenv_depth, 0));
+    lp2_fc = fm1_clamp16_max(lp2_f_eff + fm1_q16_mul(lp2_fenv_depth, 0 << 1), 55296);
     for (uint32_t v = 0; v < NVOICE; v++) {
         if (!voice_gate[v]) continue;
         if (!vm_portamento[voice_part[v]]) continue;
@@ -1762,12 +1792,14 @@ UMETATE_DSP_API void type_p_fm1_render_voices_block(int32_t *bus, int32_t (*taps
            `rate_scale`, which is velocity -> envelope rate (Q15 unity 32768, always
            >= 0), whilst a key-follow factor `k` (Q15) pushes each rate toward 0 (slower)
            or 99 (faster) and the effective rates are block-derived. Levels are total-level
-           0..99 -> Q15 gain via `fm1_level_gain`, at 0.25 dB/step. A level of 99 is max,
-           50 is ≈ −12 dB, and 0 is silence. `trigger` (default `voice_trig[v]`) resets to
-           attack on a note-on edge, even mid-note (a voice steal). Stages: 0=attack
-           (0->l1), 1=decay1 (l1->l2), 2=decay2 (l2->l3), 3=sustain (hold l3), 4=release
-           (->0). A gate edge starts release. There are no local declarations, because the
-           body is inlined once per operator, so every value is an inline expression. */
+           0..99 -> Q15 gain via `fm1_level_gain`. A stage ends when it is within 8 units
+           of its target on the side it is moving toward, so a target above the current
+           level runs up instead of snapping. A level of 99 is max and 0 is silence.
+           `trigger` (default `voice_trig[v]`) resets to attack on a note-on edge, even
+           mid-note (a voice steal). Stages: 0=attack (0->l1), 1=decay1 (l1->l2),
+           2=decay2 (l2->l3), 3=sustain (hold l3), 4=release (->0). A gate edge starts
+           release. There are no local declarations, because the body is inlined once per
+           operator, so every value is an inline expression. */
         if (voice_trig[v]) { op4_eg_stage[v] = 0u; op4_eg_level[v] = 0; }
         if (voice_gate[v]) {
             if (op4_eg_stage[v] == 4u) { op4_eg_stage[v] = 0u; op4_eg_level[v] = 0; }
@@ -1778,17 +1810,29 @@ UMETATE_DSP_API void type_p_fm1_render_voices_block(int32_t *bus, int32_t (*taps
             op4_eg_level[v] = fm1_onepole(op4_eg_level[v],
                 fm1_level_gain[op4_eg_l1[voice_part[v]]],
                 fm1_q16_mul(fm1_rate_coeff[op4_eg_r1_eff[v]], op4_velrate_cv_x[v] << 1));
-            if (op4_eg_level[v] >= fm1_level_gain[op4_eg_l1[voice_part[v]]] - 8) { op4_eg_level[v] = fm1_level_gain[op4_eg_l1[voice_part[v]]]; op4_eg_stage[v] = 1u; }
+            if (fm1_level_gain[op4_eg_l1[voice_part[v]]] >= op4_eg_level[v]
+                    ? op4_eg_level[v] >= fm1_level_gain[op4_eg_l1[voice_part[v]]] - 8
+                    : op4_eg_level[v] <= fm1_level_gain[op4_eg_l1[voice_part[v]]] + 8) {
+                op4_eg_level[v] = fm1_level_gain[op4_eg_l1[voice_part[v]]]; op4_eg_stage[v] = 1u;
+            }
         } else if (op4_eg_stage[v] == 1u) {
             op4_eg_level[v] = fm1_onepole(op4_eg_level[v],
                 fm1_level_gain[op4_eg_l2[voice_part[v]]],
                 fm1_q16_mul(fm1_rate_coeff[op4_eg_r2_eff[v]], op4_velrate_cv_x[v] << 1));
-            if (op4_eg_level[v] <= fm1_level_gain[op4_eg_l2[voice_part[v]]] + 8) { op4_eg_level[v] = fm1_level_gain[op4_eg_l2[voice_part[v]]]; op4_eg_stage[v] = 2u; }
+            if (fm1_level_gain[op4_eg_l2[voice_part[v]]] >= op4_eg_level[v]
+                    ? op4_eg_level[v] >= fm1_level_gain[op4_eg_l2[voice_part[v]]] - 8
+                    : op4_eg_level[v] <= fm1_level_gain[op4_eg_l2[voice_part[v]]] + 8) {
+                op4_eg_level[v] = fm1_level_gain[op4_eg_l2[voice_part[v]]]; op4_eg_stage[v] = 2u;
+            }
         } else if (op4_eg_stage[v] == 2u) {
             op4_eg_level[v] = fm1_onepole(op4_eg_level[v],
                 fm1_level_gain[op4_eg_l3[voice_part[v]]],
                 fm1_q16_mul(fm1_rate_coeff[op4_eg_r3_eff[v]], op4_velrate_cv_x[v] << 1));
-            if (op4_eg_level[v] <= fm1_level_gain[op4_eg_l3[voice_part[v]]] + 8) { op4_eg_level[v] = fm1_level_gain[op4_eg_l3[voice_part[v]]]; op4_eg_stage[v] = 3u; }
+            if (fm1_level_gain[op4_eg_l3[voice_part[v]]] >= op4_eg_level[v]
+                    ? op4_eg_level[v] >= fm1_level_gain[op4_eg_l3[voice_part[v]]] - 8
+                    : op4_eg_level[v] <= fm1_level_gain[op4_eg_l3[voice_part[v]]] + 8) {
+                op4_eg_level[v] = fm1_level_gain[op4_eg_l3[voice_part[v]]]; op4_eg_stage[v] = 3u;
+            }
         } else if (op4_eg_stage[v] == 3u) {
             op4_eg_level[v] = fm1_level_gain[op4_eg_l3[voice_part[v]]];
         } else {
@@ -1843,12 +1887,14 @@ UMETATE_DSP_API void type_p_fm1_render_voices_block(int32_t *bus, int32_t (*taps
            `rate_scale`, which is velocity -> envelope rate (Q15 unity 32768, always
            >= 0), whilst a key-follow factor `k` (Q15) pushes each rate toward 0 (slower)
            or 99 (faster) and the effective rates are block-derived. Levels are total-level
-           0..99 -> Q15 gain via `fm1_level_gain`, at 0.25 dB/step. A level of 99 is max,
-           50 is ≈ −12 dB, and 0 is silence. `trigger` (default `voice_trig[v]`) resets to
-           attack on a note-on edge, even mid-note (a voice steal). Stages: 0=attack
-           (0->l1), 1=decay1 (l1->l2), 2=decay2 (l2->l3), 3=sustain (hold l3), 4=release
-           (->0). A gate edge starts release. There are no local declarations, because the
-           body is inlined once per operator, so every value is an inline expression. */
+           0..99 -> Q15 gain via `fm1_level_gain`. A stage ends when it is within 8 units
+           of its target on the side it is moving toward, so a target above the current
+           level runs up instead of snapping. A level of 99 is max and 0 is silence.
+           `trigger` (default `voice_trig[v]`) resets to attack on a note-on edge, even
+           mid-note (a voice steal). Stages: 0=attack (0->l1), 1=decay1 (l1->l2),
+           2=decay2 (l2->l3), 3=sustain (hold l3), 4=release (->0). A gate edge starts
+           release. There are no local declarations, because the body is inlined once per
+           operator, so every value is an inline expression. */
         if (voice_trig[v]) { op3_eg_stage[v] = 0u; op3_eg_level[v] = 0; }
         if (voice_gate[v]) {
             if (op3_eg_stage[v] == 4u) { op3_eg_stage[v] = 0u; op3_eg_level[v] = 0; }
@@ -1859,17 +1905,29 @@ UMETATE_DSP_API void type_p_fm1_render_voices_block(int32_t *bus, int32_t (*taps
             op3_eg_level[v] = fm1_onepole(op3_eg_level[v],
                 fm1_level_gain[op3_eg_l1[voice_part[v]]],
                 fm1_q16_mul(fm1_rate_coeff[op3_eg_r1_eff[v]], op3_velrate_cv_x[v] << 1));
-            if (op3_eg_level[v] >= fm1_level_gain[op3_eg_l1[voice_part[v]]] - 8) { op3_eg_level[v] = fm1_level_gain[op3_eg_l1[voice_part[v]]]; op3_eg_stage[v] = 1u; }
+            if (fm1_level_gain[op3_eg_l1[voice_part[v]]] >= op3_eg_level[v]
+                    ? op3_eg_level[v] >= fm1_level_gain[op3_eg_l1[voice_part[v]]] - 8
+                    : op3_eg_level[v] <= fm1_level_gain[op3_eg_l1[voice_part[v]]] + 8) {
+                op3_eg_level[v] = fm1_level_gain[op3_eg_l1[voice_part[v]]]; op3_eg_stage[v] = 1u;
+            }
         } else if (op3_eg_stage[v] == 1u) {
             op3_eg_level[v] = fm1_onepole(op3_eg_level[v],
                 fm1_level_gain[op3_eg_l2[voice_part[v]]],
                 fm1_q16_mul(fm1_rate_coeff[op3_eg_r2_eff[v]], op3_velrate_cv_x[v] << 1));
-            if (op3_eg_level[v] <= fm1_level_gain[op3_eg_l2[voice_part[v]]] + 8) { op3_eg_level[v] = fm1_level_gain[op3_eg_l2[voice_part[v]]]; op3_eg_stage[v] = 2u; }
+            if (fm1_level_gain[op3_eg_l2[voice_part[v]]] >= op3_eg_level[v]
+                    ? op3_eg_level[v] >= fm1_level_gain[op3_eg_l2[voice_part[v]]] - 8
+                    : op3_eg_level[v] <= fm1_level_gain[op3_eg_l2[voice_part[v]]] + 8) {
+                op3_eg_level[v] = fm1_level_gain[op3_eg_l2[voice_part[v]]]; op3_eg_stage[v] = 2u;
+            }
         } else if (op3_eg_stage[v] == 2u) {
             op3_eg_level[v] = fm1_onepole(op3_eg_level[v],
                 fm1_level_gain[op3_eg_l3[voice_part[v]]],
                 fm1_q16_mul(fm1_rate_coeff[op3_eg_r3_eff[v]], op3_velrate_cv_x[v] << 1));
-            if (op3_eg_level[v] <= fm1_level_gain[op3_eg_l3[voice_part[v]]] + 8) { op3_eg_level[v] = fm1_level_gain[op3_eg_l3[voice_part[v]]]; op3_eg_stage[v] = 3u; }
+            if (fm1_level_gain[op3_eg_l3[voice_part[v]]] >= op3_eg_level[v]
+                    ? op3_eg_level[v] >= fm1_level_gain[op3_eg_l3[voice_part[v]]] - 8
+                    : op3_eg_level[v] <= fm1_level_gain[op3_eg_l3[voice_part[v]]] + 8) {
+                op3_eg_level[v] = fm1_level_gain[op3_eg_l3[voice_part[v]]]; op3_eg_stage[v] = 3u;
+            }
         } else if (op3_eg_stage[v] == 3u) {
             op3_eg_level[v] = fm1_level_gain[op3_eg_l3[voice_part[v]]];
         } else {
@@ -1924,12 +1982,14 @@ UMETATE_DSP_API void type_p_fm1_render_voices_block(int32_t *bus, int32_t (*taps
            `rate_scale`, which is velocity -> envelope rate (Q15 unity 32768, always
            >= 0), whilst a key-follow factor `k` (Q15) pushes each rate toward 0 (slower)
            or 99 (faster) and the effective rates are block-derived. Levels are total-level
-           0..99 -> Q15 gain via `fm1_level_gain`, at 0.25 dB/step. A level of 99 is max,
-           50 is ≈ −12 dB, and 0 is silence. `trigger` (default `voice_trig[v]`) resets to
-           attack on a note-on edge, even mid-note (a voice steal). Stages: 0=attack
-           (0->l1), 1=decay1 (l1->l2), 2=decay2 (l2->l3), 3=sustain (hold l3), 4=release
-           (->0). A gate edge starts release. There are no local declarations, because the
-           body is inlined once per operator, so every value is an inline expression. */
+           0..99 -> Q15 gain via `fm1_level_gain`. A stage ends when it is within 8 units
+           of its target on the side it is moving toward, so a target above the current
+           level runs up instead of snapping. A level of 99 is max and 0 is silence.
+           `trigger` (default `voice_trig[v]`) resets to attack on a note-on edge, even
+           mid-note (a voice steal). Stages: 0=attack (0->l1), 1=decay1 (l1->l2),
+           2=decay2 (l2->l3), 3=sustain (hold l3), 4=release (->0). A gate edge starts
+           release. There are no local declarations, because the body is inlined once per
+           operator, so every value is an inline expression. */
         if (voice_trig[v]) { op2_eg_stage[v] = 0u; op2_eg_level[v] = 0; }
         if (voice_gate[v]) {
             if (op2_eg_stage[v] == 4u) { op2_eg_stage[v] = 0u; op2_eg_level[v] = 0; }
@@ -1940,17 +2000,29 @@ UMETATE_DSP_API void type_p_fm1_render_voices_block(int32_t *bus, int32_t (*taps
             op2_eg_level[v] = fm1_onepole(op2_eg_level[v],
                 fm1_level_gain[op2_eg_l1[voice_part[v]]],
                 fm1_q16_mul(fm1_rate_coeff[op2_eg_r1_eff[v]], op2_velrate_cv_x[v] << 1));
-            if (op2_eg_level[v] >= fm1_level_gain[op2_eg_l1[voice_part[v]]] - 8) { op2_eg_level[v] = fm1_level_gain[op2_eg_l1[voice_part[v]]]; op2_eg_stage[v] = 1u; }
+            if (fm1_level_gain[op2_eg_l1[voice_part[v]]] >= op2_eg_level[v]
+                    ? op2_eg_level[v] >= fm1_level_gain[op2_eg_l1[voice_part[v]]] - 8
+                    : op2_eg_level[v] <= fm1_level_gain[op2_eg_l1[voice_part[v]]] + 8) {
+                op2_eg_level[v] = fm1_level_gain[op2_eg_l1[voice_part[v]]]; op2_eg_stage[v] = 1u;
+            }
         } else if (op2_eg_stage[v] == 1u) {
             op2_eg_level[v] = fm1_onepole(op2_eg_level[v],
                 fm1_level_gain[op2_eg_l2[voice_part[v]]],
                 fm1_q16_mul(fm1_rate_coeff[op2_eg_r2_eff[v]], op2_velrate_cv_x[v] << 1));
-            if (op2_eg_level[v] <= fm1_level_gain[op2_eg_l2[voice_part[v]]] + 8) { op2_eg_level[v] = fm1_level_gain[op2_eg_l2[voice_part[v]]]; op2_eg_stage[v] = 2u; }
+            if (fm1_level_gain[op2_eg_l2[voice_part[v]]] >= op2_eg_level[v]
+                    ? op2_eg_level[v] >= fm1_level_gain[op2_eg_l2[voice_part[v]]] - 8
+                    : op2_eg_level[v] <= fm1_level_gain[op2_eg_l2[voice_part[v]]] + 8) {
+                op2_eg_level[v] = fm1_level_gain[op2_eg_l2[voice_part[v]]]; op2_eg_stage[v] = 2u;
+            }
         } else if (op2_eg_stage[v] == 2u) {
             op2_eg_level[v] = fm1_onepole(op2_eg_level[v],
                 fm1_level_gain[op2_eg_l3[voice_part[v]]],
                 fm1_q16_mul(fm1_rate_coeff[op2_eg_r3_eff[v]], op2_velrate_cv_x[v] << 1));
-            if (op2_eg_level[v] <= fm1_level_gain[op2_eg_l3[voice_part[v]]] + 8) { op2_eg_level[v] = fm1_level_gain[op2_eg_l3[voice_part[v]]]; op2_eg_stage[v] = 3u; }
+            if (fm1_level_gain[op2_eg_l3[voice_part[v]]] >= op2_eg_level[v]
+                    ? op2_eg_level[v] >= fm1_level_gain[op2_eg_l3[voice_part[v]]] - 8
+                    : op2_eg_level[v] <= fm1_level_gain[op2_eg_l3[voice_part[v]]] + 8) {
+                op2_eg_level[v] = fm1_level_gain[op2_eg_l3[voice_part[v]]]; op2_eg_stage[v] = 3u;
+            }
         } else if (op2_eg_stage[v] == 3u) {
             op2_eg_level[v] = fm1_level_gain[op2_eg_l3[voice_part[v]]];
         } else {
@@ -2005,12 +2077,14 @@ UMETATE_DSP_API void type_p_fm1_render_voices_block(int32_t *bus, int32_t (*taps
            `rate_scale`, which is velocity -> envelope rate (Q15 unity 32768, always
            >= 0), whilst a key-follow factor `k` (Q15) pushes each rate toward 0 (slower)
            or 99 (faster) and the effective rates are block-derived. Levels are total-level
-           0..99 -> Q15 gain via `fm1_level_gain`, at 0.25 dB/step. A level of 99 is max,
-           50 is ≈ −12 dB, and 0 is silence. `trigger` (default `voice_trig[v]`) resets to
-           attack on a note-on edge, even mid-note (a voice steal). Stages: 0=attack
-           (0->l1), 1=decay1 (l1->l2), 2=decay2 (l2->l3), 3=sustain (hold l3), 4=release
-           (->0). A gate edge starts release. There are no local declarations, because the
-           body is inlined once per operator, so every value is an inline expression. */
+           0..99 -> Q15 gain via `fm1_level_gain`. A stage ends when it is within 8 units
+           of its target on the side it is moving toward, so a target above the current
+           level runs up instead of snapping. A level of 99 is max and 0 is silence.
+           `trigger` (default `voice_trig[v]`) resets to attack on a note-on edge, even
+           mid-note (a voice steal). Stages: 0=attack (0->l1), 1=decay1 (l1->l2),
+           2=decay2 (l2->l3), 3=sustain (hold l3), 4=release (->0). A gate edge starts
+           release. There are no local declarations, because the body is inlined once per
+           operator, so every value is an inline expression. */
         if (voice_trig[v]) { op1_eg_stage[v] = 0u; op1_eg_level[v] = 0; }
         if (voice_gate[v]) {
             if (op1_eg_stage[v] == 4u) { op1_eg_stage[v] = 0u; op1_eg_level[v] = 0; }
@@ -2021,17 +2095,29 @@ UMETATE_DSP_API void type_p_fm1_render_voices_block(int32_t *bus, int32_t (*taps
             op1_eg_level[v] = fm1_onepole(op1_eg_level[v],
                 fm1_level_gain[op1_eg_l1[voice_part[v]]],
                 fm1_q16_mul(fm1_rate_coeff[op1_eg_r1_eff[v]], op1_velrate_cv_x[v] << 1));
-            if (op1_eg_level[v] >= fm1_level_gain[op1_eg_l1[voice_part[v]]] - 8) { op1_eg_level[v] = fm1_level_gain[op1_eg_l1[voice_part[v]]]; op1_eg_stage[v] = 1u; }
+            if (fm1_level_gain[op1_eg_l1[voice_part[v]]] >= op1_eg_level[v]
+                    ? op1_eg_level[v] >= fm1_level_gain[op1_eg_l1[voice_part[v]]] - 8
+                    : op1_eg_level[v] <= fm1_level_gain[op1_eg_l1[voice_part[v]]] + 8) {
+                op1_eg_level[v] = fm1_level_gain[op1_eg_l1[voice_part[v]]]; op1_eg_stage[v] = 1u;
+            }
         } else if (op1_eg_stage[v] == 1u) {
             op1_eg_level[v] = fm1_onepole(op1_eg_level[v],
                 fm1_level_gain[op1_eg_l2[voice_part[v]]],
                 fm1_q16_mul(fm1_rate_coeff[op1_eg_r2_eff[v]], op1_velrate_cv_x[v] << 1));
-            if (op1_eg_level[v] <= fm1_level_gain[op1_eg_l2[voice_part[v]]] + 8) { op1_eg_level[v] = fm1_level_gain[op1_eg_l2[voice_part[v]]]; op1_eg_stage[v] = 2u; }
+            if (fm1_level_gain[op1_eg_l2[voice_part[v]]] >= op1_eg_level[v]
+                    ? op1_eg_level[v] >= fm1_level_gain[op1_eg_l2[voice_part[v]]] - 8
+                    : op1_eg_level[v] <= fm1_level_gain[op1_eg_l2[voice_part[v]]] + 8) {
+                op1_eg_level[v] = fm1_level_gain[op1_eg_l2[voice_part[v]]]; op1_eg_stage[v] = 2u;
+            }
         } else if (op1_eg_stage[v] == 2u) {
             op1_eg_level[v] = fm1_onepole(op1_eg_level[v],
                 fm1_level_gain[op1_eg_l3[voice_part[v]]],
                 fm1_q16_mul(fm1_rate_coeff[op1_eg_r3_eff[v]], op1_velrate_cv_x[v] << 1));
-            if (op1_eg_level[v] <= fm1_level_gain[op1_eg_l3[voice_part[v]]] + 8) { op1_eg_level[v] = fm1_level_gain[op1_eg_l3[voice_part[v]]]; op1_eg_stage[v] = 3u; }
+            if (fm1_level_gain[op1_eg_l3[voice_part[v]]] >= op1_eg_level[v]
+                    ? op1_eg_level[v] >= fm1_level_gain[op1_eg_l3[voice_part[v]]] - 8
+                    : op1_eg_level[v] <= fm1_level_gain[op1_eg_l3[voice_part[v]]] + 8) {
+                op1_eg_level[v] = fm1_level_gain[op1_eg_l3[voice_part[v]]]; op1_eg_stage[v] = 3u;
+            }
         } else if (op1_eg_stage[v] == 3u) {
             op1_eg_level[v] = fm1_level_gain[op1_eg_l3[voice_part[v]]];
         } else {
@@ -2508,23 +2594,70 @@ UMETATE_DSP_API void type_p_fm1_render_voices_block(int32_t *bus, int32_t (*taps
 UMETATE_DSP_API void type_p_fm1_render_post_block(int32_t *out, const int32_t *src, uint32_t b, uint32_t frames) {
     for (uint32_t f = b; f < b + 32u && f < frames; f++) {
         int32_t bus = src[f - b];
-        /* Chamberlin state-variable filter. `f` = 2*sin(pi*fc/fs) (Q16), `q` = damping
-           (Q16), and the state `low`/`band` is Q15 and saturating. The body runs
-           low += f*band, then high = in - low - q*band, then band += f*high. The combined
-           cutoff `fc` (clamped) is block-derived, because it only depends on block-rate
-           inputs, so the per-sample body just reads it. `type` picks LP/BP/HP for `out`,
-           and `on` 0 bypasses with out = in. */
-        lp_low = fm1_sat_add32(lp_low, fm1_q16_mul(lp_fc, lp_band));
-        int32_t lp_high_x = bus - lp_low - fm1_q16_mul(lp_q, lp_band);
-        lp_band = fm1_sat_add32(lp_band, fm1_q16_mul(lp_fc, lp_high_x));
-        int32_t lp_low_x = lp_low;
-        int32_t lp_band_x = lp_band;
-        int32_t lp_out_x = lp_on
-            ? (lp_type == 1u ? lp_band_x : lp_type == 2u ? lp_high_x : lp_low_x)
-            : bus;
-        (void)lp_low_x;
+        /* A 4-pole resonant lowpass ladder in the spirit of the Ripples / Liquid Filter.
+           Four one-pole OTA stages run in series, with the 4th fed back negatively at 4x.
+           The loop gain reaches unity at the cutoff, so it self-oscillates. The soft clip
+           sits on the resonance feedback path (the Ripples OTA, and the SH-101's feedback
+           diodes) rather than on the input, so the input stays linear and the
+           self-oscillation amplitude does not change with the input level. The states are
+           not clamped. The feedback clip already bounds the loop, so the cells settle
+           within a few times the input level and int32 holds them comfortably. `f` is the
+           per-stage coefficient (Q16). `fc` is block-derived from the envelope plus key /
+           velocity follow, and clamped at 55296 because the feedback loop breaks into a
+           parasitic oscillation above that coefficient. The feedback also drops the passband by `1/(1+4.5*res)`, so
+           `comp` (Q15) is the fraction of a `1+4.5*res` makeup applied to the LP4 output;
+           at `comp` = 1 the passband stays level as the resonance rises. `mode` selects
+           the output: 0 = LP4, 1 = the band tap, 2 = the 2-pole highpass, the (1 - L)^2
+           tap whose corner lines up with the LP pole. Locals are scoped so several
+           instances can coexist. */
+        int32_t lp_out_x = 0;
+        int32_t lp_lp2_x = 0;
+        int32_t lp_band_x = 0;
+        int32_t lp_hp_x = 0;
+        if (lp_on) {
+            int32_t fb = fm1_q16_mul(lp_res, lp_z4);
+            fb = fb * 9 / 2;                 /* 4.5x: a little past the discretized threshold */
+            int32_t fbc;
+            if (fb > 32767) {
+                fbc = 21845;
+            } else if (fb < -32767) {
+                fbc = -21845;
+            } else {
+                int32_t f2 = (fb * fb) >> 15;
+                int32_t f3 = (f2 * fb) >> 15;
+                fbc = fb - ((f3 * 21846) >> 16);
+            }
+            int32_t u = bus - fbc;
+            int32_t d = u - lp_z1;
+            lp_z1 += fm1_q16_mul(lp_fc, d);
+            d = lp_z1 - lp_z2;
+            lp_z2 += fm1_q16_mul(lp_fc, d);
+            d = lp_z2 - lp_z3;
+            lp_z3 += fm1_q16_mul(lp_fc, d);
+            d = lp_z3 - lp_z4;
+            lp_z4 += fm1_q16_mul(lp_fc, d);
+            lp_lp2_x = lp_z2;
+            lp_band_x = lp_z1 - lp_z2;
+            {
+                int32_t boost = fm1_q16_mul(lp_res, lp_comp << 1); /* res * comp */
+                boost = boost * 9 / 2;                 /* 4.5x: the ladder feedback */
+                int32_t lp4 = lp_z4 + fm1_q16_mul(lp_z4, boost);
+                /* The 2-pole HP is the (1 - L)^2 tap, so its corner lines up with the
+                   LP pole rather than the 1.55x offset of the 4-pole (1 - L)^4 tap. */
+                int32_t hp = u - 2 * lp_z1 + lp_z2;
+                lp_hp_x = hp;
+                lp_out_x = (lp_mode == 1u) ? lp_band_x
+                           : ((lp_mode == 2u) ? hp : lp4);
+            }
+        } else {
+            lp_out_x = bus;
+            lp_lp2_x = bus;
+            lp_band_x = 0;
+            lp_hp_x = 0;
+        }
+        (void)lp_lp2_x;
         (void)lp_band_x;
-        (void)lp_high_x;
+        (void)lp_hp_x;
         /* Sine wavefolder: folds the portion of the input above `threshold` (Q15) by
            `folds` sine folds, crossfaded by `amount` (Q15, modulatable). `on` 0 is a dry
            bypass. `type` 0 is the sine fold (reserved). The band below `threshold`
@@ -2549,23 +2682,70 @@ UMETATE_DSP_API void type_p_fm1_render_post_block(int32_t *out, const int32_t *s
                 wf_audio_x = (in < 0 ? -1 : 1) * (th + excess);
             }
         }
-        /* Chamberlin state-variable filter. `f` = 2*sin(pi*fc/fs) (Q16), `q` = damping
-           (Q16), and the state `low`/`band` is Q15 and saturating. The body runs
-           low += f*band, then high = in - low - q*band, then band += f*high. The combined
-           cutoff `fc` (clamped) is block-derived, because it only depends on block-rate
-           inputs, so the per-sample body just reads it. `type` picks LP/BP/HP for `out`,
-           and `on` 0 bypasses with out = in. */
-        lp2_low = fm1_sat_add32(lp2_low, fm1_q16_mul(lp2_fc, lp2_band));
-        int32_t lp2_high_x = wf_audio_x - lp2_low - fm1_q16_mul(lp2_q, lp2_band);
-        lp2_band = fm1_sat_add32(lp2_band, fm1_q16_mul(lp2_fc, lp2_high_x));
-        int32_t lp2_low_x = lp2_low;
-        int32_t lp2_band_x = lp2_band;
-        int32_t lp2_out_x = lp2_on
-            ? (lp2_type == 1u ? lp2_band_x : lp2_type == 2u ? lp2_high_x : lp2_low_x)
-            : wf_audio_x;
-        (void)lp2_low_x;
+        /* A 4-pole resonant lowpass ladder in the spirit of the Ripples / Liquid Filter.
+           Four one-pole OTA stages run in series, with the 4th fed back negatively at 4x.
+           The loop gain reaches unity at the cutoff, so it self-oscillates. The soft clip
+           sits on the resonance feedback path (the Ripples OTA, and the SH-101's feedback
+           diodes) rather than on the input, so the input stays linear and the
+           self-oscillation amplitude does not change with the input level. The states are
+           not clamped. The feedback clip already bounds the loop, so the cells settle
+           within a few times the input level and int32 holds them comfortably. `f` is the
+           per-stage coefficient (Q16). `fc` is block-derived from the envelope plus key /
+           velocity follow, and clamped at 55296 because the feedback loop breaks into a
+           parasitic oscillation above that coefficient. The feedback also drops the passband by `1/(1+4.5*res)`, so
+           `comp` (Q15) is the fraction of a `1+4.5*res` makeup applied to the LP4 output;
+           at `comp` = 1 the passband stays level as the resonance rises. `mode` selects
+           the output: 0 = LP4, 1 = the band tap, 2 = the 2-pole highpass, the (1 - L)^2
+           tap whose corner lines up with the LP pole. Locals are scoped so several
+           instances can coexist. */
+        int32_t lp2_out_x = 0;
+        int32_t lp2_lp2_x = 0;
+        int32_t lp2_band_x = 0;
+        int32_t lp2_hp_x = 0;
+        if (lp2_on) {
+            int32_t fb = fm1_q16_mul(lp2_res, lp2_z4);
+            fb = fb * 9 / 2;                 /* 4.5x: a little past the discretized threshold */
+            int32_t fbc;
+            if (fb > 32767) {
+                fbc = 21845;
+            } else if (fb < -32767) {
+                fbc = -21845;
+            } else {
+                int32_t f2 = (fb * fb) >> 15;
+                int32_t f3 = (f2 * fb) >> 15;
+                fbc = fb - ((f3 * 21846) >> 16);
+            }
+            int32_t u = wf_audio_x - fbc;
+            int32_t d = u - lp2_z1;
+            lp2_z1 += fm1_q16_mul(lp2_fc, d);
+            d = lp2_z1 - lp2_z2;
+            lp2_z2 += fm1_q16_mul(lp2_fc, d);
+            d = lp2_z2 - lp2_z3;
+            lp2_z3 += fm1_q16_mul(lp2_fc, d);
+            d = lp2_z3 - lp2_z4;
+            lp2_z4 += fm1_q16_mul(lp2_fc, d);
+            lp2_lp2_x = lp2_z2;
+            lp2_band_x = lp2_z1 - lp2_z2;
+            {
+                int32_t boost = fm1_q16_mul(lp2_res, lp2_comp << 1); /* res * comp */
+                boost = boost * 9 / 2;                 /* 4.5x: the ladder feedback */
+                int32_t lp4 = lp2_z4 + fm1_q16_mul(lp2_z4, boost);
+                /* The 2-pole HP is the (1 - L)^2 tap, so its corner lines up with the
+                   LP pole rather than the 1.55x offset of the 4-pole (1 - L)^4 tap. */
+                int32_t hp = u - 2 * lp2_z1 + lp2_z2;
+                lp2_hp_x = hp;
+                lp2_out_x = (lp2_mode == 1u) ? lp2_band_x
+                           : ((lp2_mode == 2u) ? hp : lp4);
+            }
+        } else {
+            lp2_out_x = wf_audio_x;
+            lp2_lp2_x = wf_audio_x;
+            lp2_band_x = 0;
+            lp2_hp_x = 0;
+        }
+        (void)lp2_lp2_x;
         (void)lp2_band_x;
-        (void)lp2_high_x;
+        (void)lp2_hp_x;
         out[f * 2] = lp2_out_x; out[f * 2 + 1] = lp2_out_x;
     }
 }

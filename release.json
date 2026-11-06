@@ -1,7 +1,7 @@
 {
   "product": "Type P.fm1",
-  "version": "1.0.3",
-  "commit": "c160c86",
+  "version": "1.0.4",
+  "commit": "f0995c9",
   "date": "2026-11-06",
   "artifacts": [
     {
@@ -9,56 +9,21 @@
       "platform": "M-VAVE FM-1",
       "format": "firmware",
       "size": 612216,
-      "sha256": "f4883e4bdaea49eb187848f6ce1a3ebc9a996305cfb59fec6508295c801d203e"
+      "sha256": "e941ce77c9ec5b8c058d637d9eb240f689adfcfb396590b4d8b8806e55f6689e"
     },
     {
-      "path": "Type-P.fm1-CLAP-linux-aarch64.zip",
-      "platform": "linux-aarch64",
-      "format": "CLAP",
-      "size": 5741729,
-      "sha256": "bbbef6bcf3993b3ab76919e6cb47cd3025aaf30938bc8ac5f0fe3790a31dd2a1"
-    },
-    {
-      "path": "Type-P.fm1-VST3-linux-aarch64.zip",
-      "platform": "linux-aarch64",
-      "format": "VST3",
-      "size": 5936649,
-      "sha256": "0670975c2170106931e91e4f488233c6997c2253432342618bcf4895ec48d967"
-    },
-    {
-      "path": "Type-P.fm1-CLAP-linux-x86_64.zip",
+      "path": "plugins/linux-x86_64/Type-P.fm1-CLAP-linux-x86_64.zip",
       "platform": "linux-x86_64",
       "format": "CLAP",
-      "size": 5767298,
-      "sha256": "750453dfec3fa255ad597049432501889686f44c7d49e1f4fbc8a6d8a63df50c"
+      "size": 5913585,
+      "sha256": "920398a5e52eef27b762883de9e61cd03a5340ff098d3b8917102fd5b9430382"
     },
     {
-      "path": "Type-P.fm1-VST3-linux-x86_64.zip",
+      "path": "plugins/linux-x86_64/Type-P.fm1-VST3-linux-x86_64.zip",
       "platform": "linux-x86_64",
       "format": "VST3",
-      "size": 5972152,
-      "sha256": "b8f45fb419e895a9914a59380f7697f0079ec0be79abea62f6df6b8a1691b24e"
-    },
-    {
-      "path": "Type-P.fm1-CLAP-windows-x86_64.zip",
-      "platform": "windows-x86_64",
-      "format": "CLAP",
-      "size": 4091717,
-      "sha256": "9c2655fbe99117fd6005f74d50973ba3f421b424ca13eddd751e93dfff986bd3"
-    },
-    {
-      "path": "Type-P.fm1-VST3-windows-x86_64.zip",
-      "platform": "windows-x86_64",
-      "format": "VST3",
-      "size": 4106838,
-      "sha256": "6402fa47d6c0f2bb46b297c823e40ef064d33f8182e03336af84a5f0223f8c0a"
-    },
-    {
-      "path": "type-p-fm1-1.0.3-source.tar.gz",
-      "platform": "source",
-      "format": "source",
-      "size": 28073571,
-      "sha256": "c60c6f54cc0a20aaf8212f0659a19a96f1eaacbd97db509a7168e3e460fc96f6"
+      "size": 6115442,
+      "sha256": "dbc470239d2912159e18bca1016dca350b82e8b45ff1977ba4a8516048f8404a"
     }
   ]
 }

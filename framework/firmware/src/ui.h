@@ -33,6 +33,7 @@ enum {
     UI_SUBHEADER,      /* a page's param-group title: "OP N <suffix>" / "PART N <suffix>" */
     UI_NAME,           /* a name row (label + the name string), a page slot -> the editor */
     UI_ALGO,           /* the current algorithm graph (operators + routing) */
+    UI_BAND,           /* the operator band: selected graph + its direct targets */
     UI_CUSTOM,         /* the cv_* canvas escape hatch: ui_draw_custom() draws it */
 };
 
@@ -41,6 +42,7 @@ enum {
     UI_DISP_RAW = 0,   /* the signed integer as-is */
     UI_DISP_RATIO,     /* a Q16 frequency multiplier -> "1.00" (65536 = base pitch) */
     UI_DISP_PCT,       /* [min,max] -> "N%" */
+    UI_DISP_PCT_EXP,   /* [min,max] -> "N.NN%", exponential (fine near the top) */
     UI_DISP_PCT_BIP,   /* a bipolar -100..100 -> "+N%" / "-N%" / "0%" (key scaling) */
     UI_DISP_PCT_INV,   /* [min,max] -> "N%" inverted (100% = min; e.g. damping) */
     UI_DISP_ONOFF,     /* 0/1 -> "off"/"on" */
@@ -48,6 +50,7 @@ enum {
     UI_DISP_OFF_PCT,   /* <= 0 -> "off", else "N%" of [0,max] (e.g. a filter) */
     UI_DISP_HZ,        /* a Q32 rate -> "N.N Hz" */
     UI_DISP_SEMI,      /* a bipolar Q15 -> "+/-N.N st" (32768 = +1 octave) */
+    UI_DISP_SEMI_FINE, /* the same form, with sub-semitone knob detents */
     UI_DISP_CENT,      /* int cents -> "+/-Nc" (the operator detune) */
     UI_DISP_WAVE,      /* a 0..11 waveform index -> its name ("sine"/"tri"/…) */
     UI_DISP_FILTER,    /* a 0..2 svf type -> "lpf"/"bpf"/"hpf" */
@@ -178,6 +181,7 @@ uint8_t ui_part(void);                           /* the active part (0-based) */
 void ui_part_next(void);                         /* cycle the active part (the SEL double-tap) */
 void ui_part_set(uint8_t part);                  /* set the active part (INIT) */
 void ui_op_set(uint8_t op);                      /* set the active operator (INIT) */
+void ui_op_step(int32_t delta);                  /* move the operator selection (SEL + SELECT) */
 void ui_part_mute_toggle(uint8_t part);          /* mute/unmute a part (the header + chords) */
 void ui_part_mute_set(uint8_t part, uint8_t muted); /* set a part's mute (INIT) */
 uint8_t ui_part_muted(uint8_t part);             /* 1 = the part is muted */

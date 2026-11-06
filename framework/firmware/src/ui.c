@@ -8,6 +8,7 @@
 
 #define UI_MAX_DEPTH 8u
 #define UI_MAX_WIDGETS 24u
+#define UI_MAX_CTX 16u
 #define UI_ROW_H 16u          /* FONT_S glyph height, one row */
 #define UI_COL_W 120u         /* a column (col 0 = full width) */
 #define UI_REDRAW_MS 33u      /* ~30 Hz */
@@ -56,6 +57,7 @@ static const ui_tables *ui_t;
 static int32_t ui_param_v[UI_PARAM_MAX];
 static uint8_t ui_stack[UI_MAX_DEPTH], ui_sp;   /* context ids; top = active */
 static uint8_t ui_pagei[UI_MAX_DEPTH];          /* the page within each context */
+static uint8_t ui_page_mem[UI_MAX_CTX];         /* the page each context was left on */
 static int32_t ui_last[UI_MAX_WIDGETS];         /* last-drawn value per widget slot */
 static int32_t ui_custom_v[UI_MAX_WIDGETS];     /* UI_CUSTOM widgets' dirty values (app-set) */
 static int32_t ui_cursor;                        /* list/grid selection */
@@ -82,6 +84,14 @@ static const char *ui_confirm_text;              /* the question it asks */
 static const ui_context *ui_ctx(void) { return &ui_t->ctx[ui_stack[ui_sp]]; }
 static const ui_page *ui_cur_page(void) { return &ui_ctx()->pages[ui_pagei[ui_sp]]; }
 
+/* move to `page` in the context on top, and remember it for the next visit */
+static void ui_set_page(uint8_t ctx, uint8_t page)
+{
+    ui_pagei[ui_sp] = page;
+    if (ctx < UI_MAX_CTX)
+        ui_page_mem[ctx] = page;
+}
+
 static void ui_reset_page(void)
 {
     uint32_t i;
@@ -94,12 +104,15 @@ static void ui_reset_page(void)
 
 void ui_init(const ui_tables *t)
 {
+    uint32_t i;
     palette_set(0); /* load the default palette, C_LINE..C_HI (gfx.c) would stay black */
     if (t->n_params > UI_PARAM_MAX)
         return; /* a panel beyond the kit's param cap: not rendered (the generator checks too) */
     ui_t = t;
     ui_sp = 0;
     ui_stack[0] = t->home;
+    for (i = 0; i < UI_MAX_CTX; i++)
+        ui_page_mem[i] = 0;
     ui_pagei[0] = 0;
     ui_reset_page();
     if (t->ctx[t->home].on_enter)
@@ -109,9 +122,12 @@ void ui_init(const ui_tables *t)
 void ui_push(uint8_t ctx)
 {
     if (ui_sp + 1u < UI_MAX_DEPTH && ctx < ui_t->n_ctx) {
+        uint8_t page = ctx < UI_MAX_CTX ? ui_page_mem[ctx] : 0u;
         ui_sp++;
         ui_stack[ui_sp] = ctx;
-        ui_pagei[ui_sp] = 0;
+        if (page >= ui_ctx()->n_pages)
+            page = 0u;
+        ui_pagei[ui_sp] = page;
         ui_reset_page();
         if (ui_ctx()->on_enter)
             ui_ctx()->on_enter();
@@ -126,7 +142,7 @@ void ui_switch(uint8_t ctx)
 {
     if (ui_stack[ui_sp] == ctx) {
         if (ui_ctx()->n_pages > 1u) {
-            ui_pagei[ui_sp] = (uint8_t)((ui_pagei[ui_sp] + 1u) % ui_ctx()->n_pages);
+            ui_set_page(ctx, (uint8_t)((ui_pagei[ui_sp] + 1u) % ui_ctx()->n_pages));
             ui_reset_page();
         }
         return;
@@ -151,7 +167,7 @@ void ui_pop_home(void)
     if (!ui_sp) {
         /* already home: advance to the next home page (wrapping), item 56. */
         if (ui_ctx()->n_pages > 1u) {
-            ui_pagei[0] = (uint8_t)((ui_pagei[0] + 1u) % ui_ctx()->n_pages);
+            ui_set_page(ui_stack[0], (uint8_t)((ui_pagei[0] + 1u) % ui_ctx()->n_pages));
             ui_reset_page();
         }
         return;
@@ -199,6 +215,18 @@ void ui_op_set(uint8_t op)
 {
     if (op < ui_t->n_op)
         ui_selected_op = op;
+}
+
+/* move the operator selection through the active part, wrapping (SEL + SELECT) */
+void ui_op_step(int32_t delta)
+{
+    int32_t n = (int32_t)ui_t->n_op;
+    if (n > 1) {
+        int32_t op = ((int32_t)ui_selected_op + delta) % n;
+        if (op < 0)
+            op += n;
+        ui_selected_op = (uint8_t)op;
+    }
 }
 
 void ui_part_mute_set(uint8_t part, uint8_t muted)
@@ -376,18 +404,22 @@ static void ui_do_action(uint8_t action, uint8_t arg)
     case UI_ACT_POP_HOME: ui_pop_home(); break;
     case UI_ACT_NEXT_PAGE:
         if (ui_ctx()->n_pages > 1u)
-            ui_pagei[ui_sp] = (uint8_t)((ui_pagei[ui_sp] + 1u) % ui_ctx()->n_pages);
+            ui_set_page(ui_stack[ui_sp],
+                        (uint8_t)((ui_pagei[ui_sp] + 1u) % ui_ctx()->n_pages));
         ui_reset_page();
         break;
     case UI_ACT_PREV_PAGE:
         if (ui_ctx()->n_pages > 1u)
-            ui_pagei[ui_sp] = ui_pagei[ui_sp]
+            ui_set_page(ui_stack[ui_sp], ui_pagei[ui_sp]
                 ? (uint8_t)(ui_pagei[ui_sp] - 1u)
-                : (uint8_t)(ui_ctx()->n_pages - 1u);
+                : (uint8_t)(ui_ctx()->n_pages - 1u));
         ui_reset_page();
         break;
     case UI_ACT_SET_PAGE:
-        if (arg < ui_ctx()->n_pages) { ui_pagei[ui_sp] = arg; ui_reset_page(); }
+        if (arg < ui_ctx()->n_pages) {
+            ui_set_page(ui_stack[ui_sp], arg);
+            ui_reset_page();
+        }
         break;
     case UI_ACT_SAVE: ui_act_save(); break;
     case UI_ACT_PANIC: ui_act_panic(); break;
@@ -479,8 +511,9 @@ void ui_handle(uint16_t source, int32_t value)
         ui_act_set_step((uint8_t)value);
     else if (b->action == UI_ACT_PAGE) {
         if (ui_ctx()->n_pages > 1u) {
-            ui_pagei[ui_sp] = (uint8_t)((ui_pagei[ui_sp] + (value >= 0 ? 1 : -1) + ui_ctx()->n_pages)
-                                        % ui_ctx()->n_pages);
+            ui_set_page(ui_stack[ui_sp],
+                        (uint8_t)((ui_pagei[ui_sp] + (value >= 0 ? 1 : -1)
+                                  + ui_ctx()->n_pages) % ui_ctx()->n_pages));
             ui_reset_page();
         }
     } else
@@ -573,6 +606,24 @@ void ui_param_fmt(uint16_t p, const char *unit, char *out, uint32_t n)
         ui_strcat(out, "%");
         break;
     }
+    case UI_DISP_PCT_EXP: {                        /* fine near the top: 100% at max */
+        int32_t rng = d->max - d->min;
+        int32_t pct = 0;
+        if (rng > 0 && v > d->min) {
+            int32_t x = (int32_t)((int64_t)(v - d->min) * 65536 / rng);
+            /* exp(-3x) = 2^(-3x/ln2), and 3/ln2*256 = 1108. The table covers
+               one octave, so shift the integer part out. */
+            int32_t i = (int32_t)((int64_t)x * 1108 / 65536);
+            int32_t e = fm1_exp2_q16[i & 255] >> (i >> 8);
+            int32_t e1 = fm1_exp2_q16[1108 & 255] >> (1108 >> 8);
+            int32_t den = 65536 - e1;
+            pct = den ? (int32_t)((int64_t)(65536 - e) * 10000 / den) : 0;
+            if (pct < 0) pct = 0; else if (pct > 10000) pct = 10000;
+        }
+        ui_itoa_dec(pct, 2, out);
+        ui_strcat(out, "%");
+        break;
+    }
     case UI_DISP_PCT_BIP: {                         /* a bipolar -100..100 -> "+N%"/"-N%"/"0%" */
         if (v > 0) {
             ui_strcat(out, "+");
@@ -605,6 +656,7 @@ void ui_param_fmt(uint16_t p, const char *unit, char *out, uint32_t n)
         ui_strcat(out, "Hz");
         break;
     case UI_DISP_SEMI:                             /* bipolar Q15 -> signed semitones */
+    case UI_DISP_SEMI_FINE:                        /* the same form, finer detents */
         ui_itoa_dec((int32_t)(((int64_t)v * 1200) / 32768), 2, out);
         ui_strcat(out, "st");
         break;
@@ -778,13 +830,16 @@ static void ui_draw_grid(const ui_widget *w)
 /* draw a DX rate/level envelope curve for 7 param ids (r1,r2,r3,r4,l1,l2,l3) into
  * the current canvas (wd x ht). Stage length = log2 of the one-pole time constant,
  * so the exponential rate curve is shown on a log scale (a linear length would
- * make every slow rate identical). The level height = fm1_level_gain[level]
- * (0.25 dB/step: 99 = max, 0 = silence). No cursor. */
-static void ui_env_curve(uint32_t wd, uint32_t ht, const uint16_t *p)
+ * make every slow rate identical). A unipolar level is drawn as its 0..99 value,
+ * which is the control scale the knobs show. A bipolar envelope (the pitch
+ * envelope) draws its Q15 semitone levels around a centre line instead. No cursor. */
+static void ui_env_curve(uint32_t wd, uint32_t ht, const uint16_t *p, int bipolar)
 {
     uint32_t i, cx;
     uint32_t len[5], total = 0;
     int32_t lvl[5], px[6], py[6];
+    int32_t mid = (int32_t)ht / 2;
+    int32_t span = mid - 2;
     for (i = 0; i < 3; i++) {                       /* r1..r3: attack, decay1, decay2 */
         int32_t r = p[i] < ui_t->n_params ? ui_param_v[p[i]] : 0;
         int32_t c = fm1_rate_coeff[r < 0 ? 0 : (r > 99 ? 99 : r)];
@@ -807,20 +862,38 @@ static void ui_env_curve(uint32_t wd, uint32_t ht, const uint16_t *p)
         total = 1u;
     for (i = 0; i < 3; i++) {
         int32_t l = p[4u + i] < ui_t->n_params ? ui_param_v[p[4u + i]] : 0;
-        lvl[i] = fm1_level_gain[l < 0 ? 0 : (l > 99 ? 99 : l)];
+        if (bipolar)
+            lvl[i] = l < -32768 ? -32768 : (l > 32767 ? 32767 : l);
+        else
+            lvl[i] = l < 0 ? 0 : (l > 99 ? 99 : l);
     }
     lvl[3] = lvl[2];
     lvl[4] = 0;
+    if (bipolar && span > 0)
+        cv_line(0, mid, (int32_t)wd - 1, mid, C_LINE);   /* the zero line */
     px[0] = 0;
-    py[0] = (int32_t)ht;
+    py[0] = bipolar ? mid : (int32_t)ht - 1;
     cx = 0;
     for (i = 0; i < 5; i++) {
         cx += (len[i] * wd) / total;
-        px[i + 1] = (int32_t)cx;
-        py[i + 1] = (int32_t)ht - (lvl[i] * (int32_t)ht) / 32768;
+        px[i + 1] = cx >= wd ? (int32_t)wd - 1 : (int32_t)cx;
+        py[i + 1] = bipolar && span > 0
+            ? mid - (lvl[i] * span) / 32768
+            : (int32_t)ht - 1 - (lvl[i] * ((int32_t)ht - 1)) / 99;
     }
     for (i = 0; i < 5; i++)
         cv_line(px[i], py[i], px[i + 1], py[i + 1], C_AMB);   /* the curve: graph highlight */
+}
+
+/* one operator's envelope into a rectangle at (x, y). */
+static void ui_env_at(uint32_t op, uint32_t x, uint32_t y, uint32_t wd, uint32_t ht)
+{
+    if (!ui_t->env || op >= ui_t->n_op)
+        return;
+    cv_begin(wd, ht, C_BLACK);
+    ui_env_curve(wd, ht, &ui_t->env[((uint32_t)ui_selected_part * ui_t->n_op
+                                     + op) * 7u], 0);
+    cv_blit(x, y);
 }
 
 /* the operator-relative envelope (the active operator's env group). */
@@ -829,12 +902,20 @@ static void ui_draw_envelope(const ui_widget *w)
     uint32_t x, y, wd, ht;
     uint32_t op = w->param < ui_t->n_op ? (uint32_t)w->param : (uint32_t)ui_selected_op;
     ui_region(w, &x, &y, &wd, &ht);
-    if (!ui_t->env || op >= ui_t->n_op)
-        return;
-    cv_begin(wd, ht, C_BLACK);
-    ui_env_curve(wd, ht, &ui_t->env[((uint32_t)ui_selected_part * ui_t->n_op
-                                     + op) * 7u]);
-    cv_blit(x, y);
+    ui_env_at(op, x, y, wd, ht);
+}
+
+/* 1 when a global envelope's levels are bipolar (the pitch envelope): the level
+ * params are Q15 semitones, so their display kind is `UI_DISP_SEMI`. */
+static int ui_genv_bipolar(uint16_t group)
+{
+    uint16_t l;
+    if (!ui_t->genv || group >= ui_t->n_genv)
+        return 0;
+    l = ui_t->genv[(uint32_t)group * 7u + 4u];       /* l1 */
+    return l < ui_t->n_params && ui_t->disp
+        && (ui_t->disp[l].kind == UI_DISP_SEMI
+            || ui_t->disp[l].kind == UI_DISP_SEMI_FINE);
 }
 
 /* a global envelope (7 fixed param ids, e.g. the filter F-ENV / pitch P-ENV). */
@@ -845,7 +926,8 @@ static void ui_draw_genv(const ui_widget *w)
     if (!ui_t->genv || w->param >= ui_t->n_genv)
         return;
     cv_begin(wd, ht, C_BLACK);
-    ui_env_curve(wd, ht, &ui_t->genv[(uint32_t)w->param * 7u]);
+    ui_env_curve(wd, ht, &ui_t->genv[(uint32_t)w->param * 7u],
+                 ui_genv_bipolar(w->param));
     cv_blit(x, y);
 }
 
@@ -889,17 +971,12 @@ static int32_t ui_scope_y(int32_t s, int32_t ht, uint32_t shift)
     return (int32_t)ht / 2 - (y * (int32_t)ht) / 65536;
 }
 
-static void ui_draw_scope(const ui_widget *w)
+/* one channel's scope into a rectangle at (x, y). */
+static void ui_scope_at(uint32_t ch, uint32_t x, uint32_t y, uint32_t wd, uint32_t ht,
+                        uint32_t shift)
 {
-    uint32_t ch = ui_scope_channel(w), x, y, wd, ht, i;
-    /* The operator level curve (0.75 dB per step) leaves a normal patch well
-     * below full scale. A 2x lower knee (shift 4 vs the old 5) restores most of
-     * the lost height, and a level-85 carrier still sits at about 0.8 of the
-     * widget instead of pinning at the top. The part mix is ~4x hotter, so its
-     * knee is one step wider. */
-    uint32_t shift = (w->param & 0x80u) ? 5u : 4u;
+    uint32_t i;
     int32_t mid, lx, ly;
-    ui_region(w, &x, &y, &wd, &ht);
     if (wd < 2u)
         return;
     cv_begin(wd, ht, C_BLACK);
@@ -915,6 +992,19 @@ static void ui_draw_scope(const ui_widget *w)
         ly = py;
     }
     cv_blit(x, y);
+}
+
+static void ui_draw_scope(const ui_widget *w)
+{
+    uint32_t ch = ui_scope_channel(w), x, y, wd, ht;
+    /* The operator level curve (0.75 dB per step) leaves a normal patch well
+     * below full scale. A 2x lower knee (shift 4 vs the old 5) restores most of
+     * the lost height, and a level-85 carrier still sits at about 0.8 of the
+     * widget instead of pinning at the top. The part mix is ~4x hotter, so its
+     * knee is one step wider. */
+    uint32_t shift = (w->param & 0x80u) ? 5u : 4u;
+    ui_region(w, &x, &y, &wd, &ht);
+    ui_scope_at(ch, x, y, wd, ht, shift);
 }
 
 /* the spectrogram: SCOPE_BINS linearly-spaced Goertzel bars (power-normalized),
@@ -1058,6 +1148,81 @@ static void ui_draw_algo(const ui_widget *w)
     cv_begin(wd, ht, C_BLACK);
     algo_graph(alg < ui_t->n_params ? ui_param_v[alg] : 0, 0, 0);
     cv_blit(x, y);
+}
+
+/* the channel index of one operator of the active part (the scope source). */
+static uint32_t ui_op_channel(uint32_t op)
+{
+    return 1u + op * (uint32_t)ui_t->n_part + (uint32_t)ui_selected_part;
+}
+
+/* the operators the selected one directly modulates in the current algorithm.
+ * `out` holds up to four, and the return value is the count. */
+static uint32_t ui_band_targets(uint8_t *out)
+{
+    uint16_t a = ui_alg_param();
+    uint32_t alg = a < ui_t->n_params ? (uint32_t)ui_param_v[a] : 0u;
+    uint32_t j, n = 0;
+    if (alg > 7u)
+        alg = 0u;
+    for (j = 0; j < ui_t->n_op && j < 4u; j++) {
+        if (ALGO_MOD[alg][j] & (1u << ui_selected_op))
+            out[n++] = (uint8_t)j;
+    }
+    return n;
+}
+
+/* The operator band: the selected operator's graph, then the graphs of the
+ * operators it modulates. A carrier fills the band with one graph. A modulator
+ * gets the selected graph on the top two rows, a label row, and one target graph
+ * per column on the next two rows. `param` is the graph kind (0 = envelope,
+ * 1 = scope). */
+static void ui_draw_band(const ui_widget *w)
+{
+    uint8_t tgt[4];
+    uint32_t n, i, x, y, wd, ht, cw;
+    uint32_t width, shift;
+    int32_t label_y;
+    int scope = w->param != 0u;
+    ui_region(w, &x, &y, &wd, &ht);
+    n = ui_band_targets(tgt);
+    if (!n) {
+        if (scope)
+            ui_scope_at(ui_op_channel(ui_selected_op), x, y, wd, ht, 4u);
+        else
+            ui_env_at(ui_selected_op, x, y, wd, ht);
+        return;
+    }
+    if (scope)
+        ui_scope_at(ui_op_channel(ui_selected_op), x, y, wd, 2u * UI_ROW_H, 4u);
+    else
+        ui_env_at(ui_selected_op, x, y, wd, 2u * UI_ROW_H);
+    cw = wd / n;
+    label_y = (int32_t)(y + 2u * UI_ROW_H);
+    for (i = 0; i < n; i++) {
+        char s[8];
+        uint32_t lx;
+        cv_begin(cw, UI_ROW_H, C_BLACK);
+        s[0] = 'O'; s[1] = 'P'; s[2] = ' '; s[3] = (char)('1' + tgt[i]); s[4] = 0;
+        lx = cw > 32u ? (cw - 32u) / 2u : 0u;   /* FONT_S is 8 px per glyph */
+        cv_text((int32_t)lx, 0, &FONT_S, s, C_GRAY);
+        cv_blit((int32_t)(x + i * cw), label_y);
+    }
+    width = cw;
+    shift = 4u;
+    for (i = 0; i < n; i++) {
+        uint32_t tx = x + i * cw;
+        if (scope)
+            ui_scope_at(ui_op_channel(tgt[i]), tx, y + 3u * UI_ROW_H, width,
+                        2u * UI_ROW_H, shift);
+        else
+            ui_env_at(tgt[i], tx, y + 3u * UI_ROW_H, width, 2u * UI_ROW_H);
+        if (i + 1u < n) {
+            cv_begin(1u, 2u * UI_ROW_H, C_BLACK);
+            cv_line(0, 0, 0, (int32_t)(2u * UI_ROW_H) - 1, C_LINE);
+            cv_blit((int32_t)(tx + cw - 1u), y + 3u * UI_ROW_H);
+        }
+    }
 }
 
 /* build the subheader prefix for `mode` into `s` (empty = no prefix): 0 = "OP N",
@@ -1243,6 +1408,7 @@ static void ui_draw_widget(const ui_widget *w)
     case UI_SUBHEADER: ui_draw_subheader(w); break;
     case UI_NAME: ui_draw_name_row(w); break;
     case UI_ALGO: ui_draw_algo(w); break;
+    case UI_BAND: ui_draw_band(w); break;
     case UI_CUSTOM: ui_draw_custom(w); break;
     default: break;
     }
@@ -1304,6 +1470,32 @@ static int32_t ui_widget_value(const ui_widget *w, uint32_t slot)
     case UI_ALGO: {                                 /* redraw when the algorithm changes */
         uint16_t alg = ui_alg_param();
         return alg < ui_t->n_params ? ui_param_v[alg] : 0;
+    }
+    case UI_BAND: {                                 /* the band follows the routing */
+        uint16_t a = ui_alg_param();
+        uint32_t alg = a < ui_t->n_params ? (uint32_t)ui_param_v[a] : 0u;
+        uint32_t i, j, n;
+        uint8_t tgt[4];
+        int32_t v;
+        if (alg > 7u)
+            alg = 0u;
+        v = (int32_t)(alg | ((uint32_t)ui_selected_op << 3)
+                      | ((uint32_t)ui_selected_part << 6));
+        if (w->param != 0u)
+            return v * 31 + (int32_t)scope_seq();   /* the scope is live */
+        n = ui_band_targets(tgt);
+        for (i = 0; i <= n; i++) {                  /* the selected, then the targets */
+            uint32_t op = i < n ? tgt[i] : (uint32_t)ui_selected_op;
+            uint32_t p0 = ((uint32_t)ui_selected_part * ui_t->n_op + op) * 7u;
+            if (!ui_t->env || op >= ui_t->n_op)
+                continue;
+            for (j = 0; j < 7u; j++) {
+                uint16_t p = ui_t->env[p0 + j];
+                if (p < ui_t->n_params)
+                    v += ui_param_v[p];
+            }
+        }
+        return v;
     }
     default:                                       /* VALUE/BAR/PARAM_ROW/COLUMN/OP_ROW */
         return ui_widget_param(w) < ui_t->n_params ? ui_param_v[ui_widget_param(w)] : 0;

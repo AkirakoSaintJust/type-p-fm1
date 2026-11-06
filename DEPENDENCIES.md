@@ -1,8 +1,9 @@
 # Build dependencies
 
 The firmware and web app build from the tree in this repository. The optional
-plugin fetches two pinned upstream projects with CMake `FetchContent`. The pins
-are in `framework/plugin/juce/CMakeLists.txt`, which is the authority.
+plugin fetches two pinned upstream projects with CMake `FetchContent`, and the pins
+are in `framework/plugin/juce/CMakeLists.txt`, which is the only reference for
+them.
 
 - **JUCE** 8.0.9, AGPL-3.0-only or commercial.
   <https://github.com/juce-framework/JUCE>
@@ -31,15 +32,3 @@ network access for the two `FetchContent` pins. To build offline, point
 `FETCHCONTENT_SOURCE_DIR_JUCE` and
 `FETCHCONTENT_SOURCE_DIR_CLAP-JUCE-EXTENSIONS` at local checkouts of the exact
 pins above.
-
-## Vendored sources
-
-The fetched sources are copied into `vendor/deps/`. The release source archive
-carries that tree, so the AGPL corresponding source travels with the binary.
-Build against the vendored copy with:
-
-```sh
-cmake -S framework/plugin -B build/plugin -DP1_BUILD_JUCE=ON -DP1_BUILD_CLAP=ON \
-  -DFETCHCONTENT_SOURCE_DIR_JUCE=vendor/deps/juce-src \
-  -DFETCHCONTENT_SOURCE_DIR_CLAP-JUCE-EXTENSIONS=vendor/deps/clap-juce-extensions-src
-```

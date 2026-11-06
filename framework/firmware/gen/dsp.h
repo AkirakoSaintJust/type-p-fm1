@@ -131,8 +131,10 @@ typedef struct type_p_fm1_state {
     int32_t f1_vs_k;
     int32_t f2_vs_k;
     int32_t fenv_vs_k;
-    int32_t lp_low;
-    int32_t lp_band;
+    int32_t lp_z1;
+    int32_t lp_z2;
+    int32_t lp_z3;
+    int32_t lp_z4;
     int32_t lp_f_eff;
     int32_t lp_fc;
     uint32_t fenv_stage;
@@ -142,8 +144,10 @@ typedef struct type_p_fm1_state {
     uint32_t fenv_r3_eff;
     uint32_t fenv_r4_eff;
     int32_t wf_amount_eff;
-    int32_t lp2_low;
-    int32_t lp2_band;
+    int32_t lp2_z1;
+    int32_t lp2_z2;
+    int32_t lp2_z3;
+    int32_t lp2_z4;
     int32_t lp2_f_eff;
     int32_t lp2_fc;
     uint32_t voice_age[NVOICE];
@@ -307,8 +311,9 @@ typedef struct type_p_fm1_state {
     int32_t f2_vs_amount;
     int32_t fenv_vs_amount;
     int32_t lp_f;
-    int32_t lp_q;
-    int32_t lp_type;
+    int32_t lp_res;
+    int32_t lp_comp;
+    int32_t lp_mode;
     int32_t lp_on;
     int32_t lp_fenv_depth;
     int32_t fenv_r1;
@@ -325,8 +330,9 @@ typedef struct type_p_fm1_state {
     int32_t wf_type;
     int32_t wf_amount_depth;
     int32_t lp2_f;
-    int32_t lp2_q;
-    int32_t lp2_type;
+    int32_t lp2_res;
+    int32_t lp2_comp;
+    int32_t lp2_mode;
     int32_t lp2_on;
     int32_t lp2_fenv_depth;
     uint32_t patch_gate;
@@ -448,26 +454,26 @@ static const type_p_fm1_init_entry type_p_fm1_init[] = {
     { 112u, 7 },
     { 246u, 7 },
     { 280u, 0 },
-    { 281u, 40000 },
-    { 282u, 0 },
+    { 281u, 16000 },
     { 283u, 0 },
-    { 298u, 0 },
-    { 299u, 40000 },
-    { 300u, 0 },
-    { 301u, 0 },
-    { 285u, 80 },
-    { 286u, 60 },
-    { 287u, 50 },
-    { 288u, 80 },
-    { 289u, 99 },
-    { 290u, 93 },
-    { 291u, 87 },
     { 284u, 0 },
-    { 292u, 0 },
-    { 295u, 0 },
+    { 299u, 0 },
+    { 300u, 16000 },
+    { 302u, 0 },
+    { 303u, 0 },
+    { 286u, 80 },
+    { 287u, 60 },
+    { 288u, 50 },
+    { 289u, 80 },
+    { 290u, 99 },
+    { 291u, 93 },
+    { 292u, 87 },
+    { 285u, 0 },
     { 293u, 0 },
-    { 294u, 1 },
     { 296u, 0 },
+    { 294u, 0 },
+    { 295u, 1 },
+    { 297u, 0 },
     { 124u, 0 },
     { 258u, 0 },
     { 125u, 0 },

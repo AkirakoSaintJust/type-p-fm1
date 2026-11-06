@@ -208,6 +208,7 @@ _WIDGETS = {
     "subheader": "UI_SUBHEADER",
     "name": "UI_NAME",
     "algo": "UI_ALGO",
+    "band": "UI_BAND",
     "custom": "UI_CUSTOM",
 }
 
@@ -216,6 +217,7 @@ _DISPLAY = {
     "raw": "UI_DISP_RAW",
     "ratio": "UI_DISP_RATIO",
     "pct": "UI_DISP_PCT",
+    "pct_exp": "UI_DISP_PCT_EXP",
     "pct_bip": "UI_DISP_PCT_BIP",
     "pct_inv": "UI_DISP_PCT_INV",
     "onoff": "UI_DISP_ONOFF",
@@ -223,6 +225,7 @@ _DISPLAY = {
     "off_pct": "UI_DISP_OFF_PCT",
     "hz": "UI_DISP_HZ",
     "semi": "UI_DISP_SEMI",
+    "semi_fine": "UI_DISP_SEMI_FINE",
     "cent": "UI_DISP_CENT",
     "wave": "UI_DISP_WAVE",
     "filter": "UI_DISP_FILTER",
@@ -261,6 +264,24 @@ def _semi_landmarks(lo: int, hi: int) -> list[int]:
             vals.add(v)
     vals.add(lo)
     vals.add(hi)
+    return sorted(vals)
+
+
+def _semi_fine_landmarks(lo: int, hi: int) -> list[int]:
+    """The integer semitones plus the 0.02, 0.05, 0.10, 0.30, 0.50 and 0.75
+    offsets inside each one, in Q15. The values are rounded away from zero for the
+    same reason as `_semi_landmarks`: the 2-decimal display truncates, so a value
+    just past the fraction is what reads as that fraction."""
+    vals = set(_semi_landmarks(lo, hi))
+    first = -((-lo * 12) // _Q15_OCTAVE)
+    last = (hi * 12) // _Q15_OCTAVE
+    for k in range(first, last + 1):
+        for frac in (2, 5, 10, 30, 50, 75):  # hundredths of a semitone
+            num = k * 100 + (frac if k >= 0 else -frac)  # hundredths of a semitone
+            mag = (abs(num) * _Q15_OCTAVE + 1199) // 1200  # away from zero
+            v = mag if num >= 0 else -mag
+            if lo <= v <= hi:
+                vals.add(v)
     return sorted(vals)
 
 
@@ -418,6 +439,13 @@ def generate_panel(
                         f"0..{len(operators) - 1}"
                     )
                 param = str(channel)
+        elif w["type"] == "band":
+            typ = "UI_BAND"
+            kind = w.get("kind", "env")
+            if kind not in ("env", "scope"):
+                raise GenError(f"band widget: kind {kind!r} is not 'env' or 'scope'")
+            # param = the graph kind (0 = A-ENV, 1 = scope)
+            param = "0" if kind == "env" else "1"
         elif w["type"] == "subheader":
             typ = "UI_SUBHEADER"
             # param = the prefix mode (see subheader_mode)
@@ -669,6 +697,8 @@ def generate_panel(
             vals = _ratio_landmarks(lo, hi)
         elif display == "semi":
             vals = _semi_landmarks(lo, hi)
+        elif display == "semi_fine":
+            vals = _semi_fine_landmarks(lo, hi)
         else:
             return "0", "0", "0"
         if not vals:

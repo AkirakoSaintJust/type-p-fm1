@@ -222,11 +222,11 @@ static const ui_widget W_5_2[] = {
 static const ui_widget W_5_3[] = {
     { UI_PARAM_ROW, 3, 0, 1, P_breakpoint, "BREAKPOINT", 0, 0, 0, 0 },
     { UI_PARAM_ROW, 4, 0, 1, P_key_sens_on, "KEY SENS ON", 0, 0, 0, 0 },
-    { UI_LABEL, 6, 0, 1, UI_NO_PARAM, "targets live in EDIT/FX/ENV", 0, 0, 0, 0 },
+    { UI_LABEL, 6, 0, 1, UI_NO_PARAM, "targets are in EDIT/FX/ENV", 0, 0, 0, 0 },
 };
 static const ui_widget W_5_4[] = {
     { UI_PARAM_ROW, 3, 0, 1, P_vel_sens_on, "VEL SENS ON", 0, 0, 0, 0 },
-    { UI_LABEL, 6, 0, 1, UI_NO_PARAM, "targets live in EDIT/FX/ENV", 0, 0, 0, 0 },
+    { UI_LABEL, 6, 0, 1, UI_NO_PARAM, "targets are in EDIT/FX/ENV", 0, 0, 0, 0 },
 };
 static const ui_widget W_5_5[] = {
     { UI_PART_ROW, 2, 0, 1, 10, "MODE", 0, 0, 0, 0 },

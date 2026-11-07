@@ -32,3 +32,15 @@ network access for the two `FetchContent` pins. To build offline, point
 `FETCHCONTENT_SOURCE_DIR_JUCE` and
 `FETCHCONTENT_SOURCE_DIR_CLAP-JUCE-EXTENSIONS` at local checkouts of the exact
 pins above.
+
+## Vendored sources
+
+The fetched sources are copied into `vendor/deps/`. The release source archive
+carries that tree, so the AGPL corresponding source travels with the binary.
+Build against the vendored copy with:
+
+```sh
+cmake -S framework/plugin -B build/plugin -DP1_BUILD_JUCE=ON -DP1_BUILD_CLAP=ON \
+  -DFETCHCONTENT_SOURCE_DIR_JUCE=vendor/deps/juce-src \
+  -DFETCHCONTENT_SOURCE_DIR_CLAP-JUCE-EXTENSIONS=vendor/deps/clap-juce-extensions-src
+```
